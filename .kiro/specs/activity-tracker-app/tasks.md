@@ -82,7 +82,7 @@
     - Navigate to appropriate screen based on permission status
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 6. Implement HomeScreen and navigation
+- [x] 6. Implement HomeScreen and navigation
   - [x] 6.1 Create HomeScreen UI
     - Display current tracking status (active/inactive)
     - Show today's activity summary (distance, duration by type)
@@ -98,7 +98,7 @@
     - Handle deep linking if needed
     - _Requirements: General app navigation_
 
-  - [ ] 6.3 Create HomeViewModel
+  - [x] 6.3 Create HomeViewModel
     - Fetch today's activity statistics
     - Manage tracking service state
     - Handle start/stop tracking actions

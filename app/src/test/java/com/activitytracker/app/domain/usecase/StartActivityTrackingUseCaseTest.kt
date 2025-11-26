@@ -53,26 +53,59 @@ class StartActivityTrackingUseCaseTest {
     }
 
     @Test
-    fun `invoke creates session for all activity types`() = runTest {
-        val activityTypes = listOf(
-            ActivityType.CYCLING,
-            ActivityType.RUNNING,
-            ActivityType.WALKING,
-            ActivityType.IN_VEHICLE
-        )
+    fun `invoke creates session for cycling`() = runTest {
+        // Given
+        `when`(activityRepository.insertSession(any())).thenReturn(1L)
 
-        activityTypes.forEach { activityType ->
-            // Given
-            `when`(activityRepository.insertSession(any())).thenReturn(1L)
+        // When
+        startActivityTrackingUseCase(ActivityType.CYCLING)
 
-            // When
-            startActivityTrackingUseCase(activityType)
+        // Then
+        val captor = argumentCaptor<com.activitytracker.app.domain.model.ActivitySession>()
+        verify(activityRepository).insertSession(captor.capture())
+        assertEquals(ActivityType.CYCLING, captor.firstValue.activityType)
+    }
 
-            // Then
-            val captor = argumentCaptor<com.activitytracker.app.domain.model.ActivitySession>()
-            verify(activityRepository).insertSession(captor.capture())
-            assertEquals(activityType, captor.lastValue.activityType)
-        }
+    @Test
+    fun `invoke creates session for running`() = runTest {
+        // Given
+        `when`(activityRepository.insertSession(any())).thenReturn(1L)
+
+        // When
+        startActivityTrackingUseCase(ActivityType.RUNNING)
+
+        // Then
+        val captor = argumentCaptor<com.activitytracker.app.domain.model.ActivitySession>()
+        verify(activityRepository).insertSession(captor.capture())
+        assertEquals(ActivityType.RUNNING, captor.firstValue.activityType)
+    }
+
+    @Test
+    fun `invoke creates session for walking`() = runTest {
+        // Given
+        `when`(activityRepository.insertSession(any())).thenReturn(1L)
+
+        // When
+        startActivityTrackingUseCase(ActivityType.WALKING)
+
+        // Then
+        val captor = argumentCaptor<com.activitytracker.app.domain.model.ActivitySession>()
+        verify(activityRepository).insertSession(captor.capture())
+        assertEquals(ActivityType.WALKING, captor.firstValue.activityType)
+    }
+
+    @Test
+    fun `invoke creates session for vehicle`() = runTest {
+        // Given
+        `when`(activityRepository.insertSession(any())).thenReturn(1L)
+
+        // When
+        startActivityTrackingUseCase(ActivityType.IN_VEHICLE)
+
+        // Then
+        val captor = argumentCaptor<com.activitytracker.app.domain.model.ActivitySession>()
+        verify(activityRepository).insertSession(captor.capture())
+        assertEquals(ActivityType.IN_VEHICLE, captor.firstValue.activityType)
     }
 
     @Test

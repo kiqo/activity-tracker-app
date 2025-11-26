@@ -98,6 +98,7 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NavigationButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
