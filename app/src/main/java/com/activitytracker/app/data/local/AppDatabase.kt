@@ -21,7 +21,7 @@ import com.activitytracker.app.data.local.entity.LocationPointEntity
         LocationPointEntity::class
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     

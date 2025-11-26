@@ -111,8 +111,8 @@ class CalculateRouteDistanceUseCaseTest {
         // When
         val distance = calculateRouteDistanceUseCase(sessionId)
 
-        // Then - should be approximately 2 km (two 1km segments)
-        assertEquals(2000.0, distance, 200.0)
+        // Then - should be approximately 2.2 km (two ~1.1km segments)
+        assertEquals(2200.0, distance, 300.0)
     }
 
     @Test

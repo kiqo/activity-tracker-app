@@ -83,7 +83,7 @@
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
 - [ ] 6. Implement HomeScreen and navigation
-  - [ ] 6.1 Create HomeScreen UI
+  - [x] 6.1 Create HomeScreen UI
     - Display current tracking status (active/inactive)
     - Show today's activity summary (distance, duration by type)
     - Add navigation buttons to other screens
@@ -91,7 +91,7 @@
     - Display foreground service status
     - _Requirements: General app navigation_
 
-  - [ ] 6.2 Set up Compose navigation
+  - [x] 6.2 Set up Compose navigation
     - Define navigation routes for all screens
     - Implement NavHost with screen destinations
     - Create navigation helper functions
