@@ -105,8 +105,8 @@
     - Expose UI state as StateFlow
     - _Requirements: General app navigation_
 
-- [ ] 7. Implement ActivityListScreen
-  - [ ] 7.1 Create ActivityListScreen UI
+- [x] 7. Implement ActivityListScreen
+  - [x] 7.1 Create ActivityListScreen UI
     - Display chronological list of all activity sessions
     - Show activity type icon, date, duration, and distance for each item
     - Implement filter by activity type
@@ -114,22 +114,22 @@
     - Implement pull-to-refresh
     - _Requirements: 3.1_
 
-  - [ ] 7.2 Create ActivityListViewModel
+  - [x] 7.2 Create ActivityListViewModel
     - Fetch all activity sessions from repository
     - Implement filtering logic by activity type
     - Sort sessions chronologically (newest first)
     - Expose filtered list as StateFlow
     - _Requirements: 3.1_
 
-- [ ] 8. Implement ActivityDetailScreen with Google Maps
-  - [ ] 8.1 Create ActivityDetailScreen UI
+- [x] 8. Implement ActivityDetailScreen with Google Maps
+  - [x] 8.1 Create ActivityDetailScreen UI
     - Display full activity session details (type, date, duration, distance, speed, steps)
     - Integrate GoogleMap composable for route visualization
     - Implement delete activity button with confirmation dialog
     - Show loading state while fetching location points
     - _Requirements: 3.2, 7.1, 7.2, 7.3, 7.4_
 
-  - [ ] 8.2 Implement route rendering on Google Maps
+  - [x] 8.2 Implement route rendering on Google Maps
     - Fetch location points for selected session
     - Filter points by accuracy (<50m) for route display
     - Render Polyline connecting points chronologically
@@ -138,7 +138,7 @@
     - Center camera to show entire route with padding
     - _Requirements: 3.2, 3.3, 3.4, 3.5_
 
-  - [ ] 8.3 Create ActivityDetailViewModel
+  - [x] 8.3 Create ActivityDetailViewModel
     - Fetch activity session by ID
     - Fetch location points for session
     - Calculate route bounds for camera positioning
@@ -146,8 +146,8 @@
     - Expose session details and route as StateFlow
     - _Requirements: 3.2, 3.3, 3.4, 3.5, 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 9. Implement BikeLocationScreen
-  - [ ] 9.1 Create BikeLocationScreen UI
+- [x] 9. Implement BikeLocationScreen
+  - [x] 9.1 Create BikeLocationScreen UI
     - Integrate GoogleMap composable centered on bike location
     - Display custom bike marker icon at last cycling position
     - Show distance from current location to bike
@@ -155,7 +155,7 @@
     - Display message if no cycling session exists
     - _Requirements: 6.3, 6.4, 6.5_
 
-  - [ ] 9.2 Create BikeLocationViewModel
+  - [x] 9.2 Create BikeLocationViewModel
     - Fetch most recent cycling session
     - Retrieve last location point from that session
     - Calculate distance from current location to bike

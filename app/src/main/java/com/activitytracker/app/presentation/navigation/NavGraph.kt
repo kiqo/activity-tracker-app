@@ -39,8 +39,9 @@ fun NavGraph(
         
         // Activity list screen
         composable(Screen.ActivityList.route) {
-            // ActivityListScreen will be implemented in Task 7
-            // ActivityListScreen(navController = navController)
+            com.activitytracker.app.presentation.activitylist.ActivityListScreen(
+                navController = navController
+            )
         }
         
         // Activity detail screen with sessionId argument
@@ -51,14 +52,17 @@ fun NavGraph(
             )
         ) { backStackEntry ->
             val sessionId = backStackEntry.arguments?.getLong("sessionId") ?: return@composable
-            // ActivityDetailScreen will be implemented in Task 8
-            // ActivityDetailScreen(sessionId = sessionId, navController = navController)
+            com.activitytracker.app.presentation.activitydetail.ActivityDetailScreen(
+                sessionId = sessionId,
+                navController = navController
+            )
         }
         
         // Bike location screen
         composable(Screen.BikeLocation.route) {
-            // BikeLocationScreen will be implemented in Task 9
-            // BikeLocationScreen(navController = navController)
+            com.activitytracker.app.presentation.bikelocation.BikeLocationScreen(
+                navController = navController
+            )
         }
         
         // Statistics screen
