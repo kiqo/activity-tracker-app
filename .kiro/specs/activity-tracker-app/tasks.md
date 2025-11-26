@@ -9,7 +9,7 @@
   - Configure AndroidManifest.xml with required permissions and services
   - _Requirements: All requirements depend on proper project setup_
 
-- [ ] 2. Implement data layer with Room database
+- [x] 2. Implement data layer with Room database
   - [x] 2.1 Create database entities and DAOs
     - Define ActivitySessionEntity with all fields (id, activityType, startTime, endTime, totalDistance, averageSpeed, stepCount)
     - Define LocationPointEntity with foreign key relationship to ActivitySessionEntity
@@ -18,7 +18,7 @@
     - Create AppDatabase class with Room configuration
     - _Requirements: 4.1, 4.2_
 
-  - [ ] 2.2 Implement repository interfaces and implementations
+  - [x] 2.2 Implement repository interfaces and implementations
     - Create ActivityRepository interface with Flow-based methods
     - Create LocationRepository interface with Flow-based methods
     - Implement ActivityRepositoryImpl with Room DAO integration
@@ -26,8 +26,8 @@
     - Add database indexing for performance optimization
     - _Requirements: 4.1, 4.2_
 
-- [ ] 3. Implement domain layer with use cases and models
-  - [ ] 3.1 Create domain models
+- [x] 3. Implement domain layer with use cases and models
+  - [x] 3.1 Create domain models
     - Define ActivitySession data class
     - Define ActivityType enum (CYCLING, RUNNING, WALKING, IN_VEHICLE)
     - Define LocationPoint data class
@@ -36,7 +36,7 @@
     - Create mapper functions between entities and domain models
     - _Requirements: All requirements use these domain models_
 
-  - [ ] 3.2 Implement core use cases
+  - [x] 3.2 Implement core use cases
     - Create StartActivityTrackingUseCase for initiating activity sessions
     - Create StopActivityTrackingUseCase for ending sessions and calculating final statistics
     - Create GetBikeLocationUseCase to retrieve last cycling location
@@ -45,8 +45,8 @@
     - Create GetActivityStatisticsUseCase for time-based aggregations
     - _Requirements: 1.2, 1.3, 1.4, 2.5, 6.1, 6.2, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8_
 
-- [ ] 4. Implement background services for activity tracking
-  - [ ] 4.1 Create ActivityRecognitionService
+- [x] 4. Implement background services for activity tracking
+  - [x] 4.1 Create ActivityRecognitionService
     - Implement foreground service with persistent notification
     - Register with Activity Recognition API for 30-second updates
     - Filter activities by confidence threshold (>75%)
@@ -56,7 +56,7 @@
     - Start/stop LocationTrackingService based on session state
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [ ] 4.2 Create LocationTrackingService
+  - [x] 4.2 Create LocationTrackingService
     - Implement foreground service with persistent notification
     - Request location updates every 10 seconds using FusedLocationProviderClient
     - Store all location data (latitude, longitude, altitude, accuracy, timestamp) in database
@@ -65,8 +65,8 @@
     - Handle GPS signal loss gracefully
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 5. Implement permission handling
-  - [ ] 5.1 Create PermissionsScreen with Compose
+- [x] 5. Implement permission handling
+  - [x] 5.1 Create PermissionsScreen with Compose
     - Build UI for initial permission request flow
     - Request location permission with "Allow all the time" option
     - Request activity recognition permission
@@ -75,7 +75,7 @@
     - Trigger service start when permissions granted
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-  - [ ] 5.2 Implement permission state management
+  - [x] 5.2 Implement permission state management
     - Create PermissionsViewModel to handle permission states
     - Check permission status on app launch
     - Handle permission result callbacks
@@ -244,7 +244,7 @@
     - _Requirements: 3.2, 3.3_
 
 - [ ] 14. Write unit tests for core functionality
-  - [ ] 14.1 Test domain layer
+  - [x] 14.1 Test domain layer
     - Write tests for distance calculation (Haversine formula)
     - Test step count estimation logic
     - Test statistics aggregation calculations
@@ -252,7 +252,7 @@
     - Verify use case business logic
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8_
 
-  - [ ] 14.2 Test data layer
+  - [x] 14.2 Test data layer
     - Write Room database tests for CRUD operations
     - Test foreign key constraints and cascade deletes
     - Verify repository implementations
