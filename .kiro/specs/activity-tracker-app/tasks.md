@@ -163,8 +163,8 @@
     - Expose bike location and status as StateFlow
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 10. Implement StatisticsScreen
-  - [ ] 10.1 Create StatisticsScreen UI
+- [x] 10. Implement StatisticsScreen
+  - [x] 10.1 Create StatisticsScreen UI
     - Display time interval selector (daily, weekly, monthly)
     - Show distance in km for walking, cycling, and running
     - Display total step count
@@ -173,7 +173,7 @@
     - Implement date range picker for custom intervals
     - _Requirements: 7.5, 7.6, 7.7, 7.8, 7.9_
 
-  - [ ] 10.2 Create StatisticsViewModel
+  - [x] 10.2 Create StatisticsViewModel
     - Fetch activity sessions for selected time interval
     - Calculate aggregate statistics (distance by type, total steps)
     - Convert distances from meters to kilometers
@@ -191,7 +191,7 @@
     - Add API key to local.properties and AndroidManifest.xml
     - _Requirements: 3.2, 6.3_
 
-  - [ ] 11.2 Implement map utility functions
+  - [x] 11.2 Implement map utility functions
     - Create helper function to convert LocationPoint to LatLng
     - Implement function to calculate LatLngBounds from route points
     - Create function to get color for activity type
@@ -199,14 +199,14 @@
     - _Requirements: 3.2, 3.3, 3.4, 3.5, 6.3_
 
 - [ ] 12. Implement error handling and edge cases
-  - [ ] 12.1 Handle permission errors
+  - [x] 12.1 Handle permission errors
     - Detect when permissions are denied
     - Show explanation dialogs with rationale
     - Provide links to app settings
     - Disable features when permissions unavailable
     - _Requirements: 5.3, 5.4_
 
-  - [ ] 12.2 Handle service errors
+  - [x] 12.2 Handle service errors
     - Check Google Play Services availability
     - Detect when location services are disabled
     - Handle GPS signal loss during tracking

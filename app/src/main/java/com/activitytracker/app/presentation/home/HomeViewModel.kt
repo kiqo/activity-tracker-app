@@ -7,6 +7,9 @@ import com.activitytracker.app.domain.usecase.GetActivityStatisticsUseCase
 import com.activitytracker.app.domain.usecase.StartActivityTrackingUseCase
 import com.activitytracker.app.domain.usecase.StopActivityTrackingUseCase
 import com.activitytracker.app.domain.model.TimeInterval
+import com.activitytracker.app.presentation.util.ErrorAction
+import com.activitytracker.app.presentation.util.ErrorHandler
+import com.activitytracker.app.presentation.util.ErrorState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,17 +41,24 @@ class HomeViewModel @Inject constructor(
     fun loadTodayStatistics() {
         viewModelScope.launch {
             try {
-                val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
-                _uiState.value = HomeUiState.Success(
-                    isTracking = false,
-                    currentSessionId = null,
-                    todayWalkingKm = statistics.walkingDistanceKm,
-                    todayCyclingKm = statistics.cyclingDistanceKm,
-                    todayRunningKm = statistics.runningDistanceKm,
-                    todaySteps = statistics.totalSteps
-                )
+                getActivityStatisticsUseCase(TimeInterval.DAILY).collect { statistics ->
+                    _uiState.value = HomeUiState.Success(
+                        isTracking = false,
+                        currentSessionId = null,
+                        todayWalkingKm = statistics.walkingDistanceKm,
+                        todayCyclingKm = statistics.cyclingDistanceKm,
+                        todayRunningKm = statistics.runningDistanceKm,
+                        todaySteps = statistics.totalSteps,
+                        error = null
+                    )
+                }
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(e.message ?: "Failed to load statistics")
+                val errorState = ErrorState(
+                    message = ErrorHandler.getErrorMessage(e),
+                    isRecoverable = true,
+                    action = ErrorAction.Retry
+                )
+                _uiState.value = HomeUiState.Error(errorState)
             }
         }
     }
@@ -64,11 +74,20 @@ class HomeViewModel @Inject constructor(
                 if (currentState is HomeUiState.Success) {
                     _uiState.value = currentState.copy(
                         isTracking = true,
-                        currentSessionId = sessionId
+                        currentSessionId = sessionId,
+                        error = null
                     )
                 }
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(e.message ?: "Failed to start tracking")
+                val currentState = _uiState.value
+                if (currentState is HomeUiState.Success) {
+                    val errorState = ErrorState(
+                        message = ErrorHandler.getErrorMessage(e),
+                        isRecoverable = true,
+                        action = if (e is SecurityException) ErrorAction.OpenSettings else ErrorAction.Retry
+                    )
+                    _uiState.value = currentState.copy(error = errorState)
+                }
             }
         }
     }
@@ -84,14 +103,33 @@ class HomeViewModel @Inject constructor(
                     stopActivityTrackingUseCase(currentState.currentSessionId)
                     _uiState.value = currentState.copy(
                         isTracking = false,
-                        currentSessionId = null
+                        currentSessionId = null,
+                        error = null
                     )
                     // Reload statistics to show updated data
                     loadTodayStatistics()
                 }
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(e.message ?: "Failed to stop tracking")
+                val currentState = _uiState.value
+                if (currentState is HomeUiState.Success) {
+                    val errorState = ErrorState(
+                        message = ErrorHandler.getErrorMessage(e),
+                        isRecoverable = true,
+                        action = ErrorAction.Retry
+                    )
+                    _uiState.value = currentState.copy(error = errorState)
+                }
             }
+        }
+    }
+    
+    /**
+     * Clear error state.
+     */
+    fun clearError() {
+        val currentState = _uiState.value
+        if (currentState is HomeUiState.Success) {
+            _uiState.value = currentState.copy(error = null)
         }
     }
 }
@@ -108,8 +146,9 @@ sealed class HomeUiState {
         val todayWalkingKm: Double,
         val todayCyclingKm: Double,
         val todayRunningKm: Double,
-        val todaySteps: Int
+        val todaySteps: Int,
+        val error: ErrorState? = null
     ) : HomeUiState()
     
-    data class Error(val message: String) : HomeUiState()
+    data class Error(val errorState: ErrorState) : HomeUiState()
 }

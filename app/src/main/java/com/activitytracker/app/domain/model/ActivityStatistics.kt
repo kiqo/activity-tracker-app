@@ -8,5 +8,9 @@ data class ActivityStatistics(
     val cyclingDistanceKm: Double,
     val runningDistanceKm: Double,
     val totalSteps: Int,
+    val walkingCount: Int,
+    val cyclingCount: Int,
+    val runningCount: Int,
+    val vehicleCount: Int,
     val timeInterval: TimeInterval
 )

@@ -96,37 +96,55 @@ class ActivityRecognitionService : Service() {
      * Monitors for cycling, running, walking, and vehicle activities.
      */
     private fun registerActivityRecognition() {
-        val transitions = mutableListOf<ActivityTransition>()
-        
-        // Add transitions for activities we want to track
-        val activities = listOf(
-            DetectedActivity.ON_BICYCLE,
-            DetectedActivity.RUNNING,
-            DetectedActivity.WALKING,
-            DetectedActivity.IN_VEHICLE
-        )
-        
-        activities.forEach { activityType ->
-            transitions.add(
-                ActivityTransition.Builder()
-                    .setActivityType(activityType)
-                    .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                    .build()
+        try {
+            // Check if Google Play Services is available
+            val googleApiAvailability = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this)
+            
+            if (resultCode != com.google.android.gms.common.ConnectionResult.SUCCESS) {
+                android.util.Log.e("ActivityRecognition", "Google Play Services not available: $resultCode")
+                updateNotification("Error: Google Play Services unavailable")
+                return
+            }
+            
+            val transitions = mutableListOf<ActivityTransition>()
+            
+            // Add transitions for activities we want to track
+            val activities = listOf(
+                DetectedActivity.ON_BICYCLE,
+                DetectedActivity.RUNNING,
+                DetectedActivity.WALKING,
+                DetectedActivity.IN_VEHICLE
             )
-            transitions.add(
-                ActivityTransition.Builder()
-                    .setActivityType(activityType)
-                    .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                    .build()
-            )
+            
+            activities.forEach { activityType ->
+                transitions.add(
+                    ActivityTransition.Builder()
+                        .setActivityType(activityType)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build()
+                )
+                transitions.add(
+                    ActivityTransition.Builder()
+                        .setActivityType(activityType)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build()
+                )
+            }
+            
+            val request = ActivityTransitionRequest(transitions)
+            
+            // Note: In a full implementation, you would create a PendingIntent
+            // that receives activity transition updates via a BroadcastReceiver
+            // For now, this is a placeholder for the registration
+            // TODO: Implement ActivityTransitionReceiver and register with PendingIntent
+        } catch (e: SecurityException) {
+            android.util.Log.e("ActivityRecognition", "Permission denied", e)
+            updateNotification("Error: Permission denied")
+        } catch (e: Exception) {
+            android.util.Log.e("ActivityRecognition", "Failed to register activity recognition", e)
+            updateNotification("Error: Failed to start monitoring")
         }
-        
-        val request = ActivityTransitionRequest(transitions)
-        
-        // Note: In a full implementation, you would create a PendingIntent
-        // that receives activity transition updates via a BroadcastReceiver
-        // For now, this is a placeholder for the registration
-        // TODO: Implement ActivityTransitionReceiver and register with PendingIntent
     }
 
     /**
@@ -151,22 +169,30 @@ class ActivityRecognitionService : Service() {
         // If this is a different activity type, end current session and start new one
         if (detectedActivity != currentActivityType) {
             serviceScope.launch {
-                // End current session
-                currentSessionId?.let { sessionId ->
-                    stopActivityTrackingUseCase(sessionId)
-                    stopLocationTracking()
+                try {
+                    // End current session
+                    currentSessionId?.let { sessionId ->
+                        stopActivityTrackingUseCase(sessionId)
+                        stopLocationTracking()
+                    }
+                    
+                    // Start new session
+                    val newSessionId = startActivityTrackingUseCase(detectedActivity)
+                    currentSessionId = newSessionId
+                    currentActivityType = detectedActivity
+                    
+                    // Start location tracking
+                    startLocationTracking(newSessionId)
+                    
+                    // Update notification
+                    updateNotification("Tracking: ${detectedActivity.name}")
+                } catch (e: Exception) {
+                    android.util.Log.e("ActivityRecognition", "Failed to handle activity", e)
+                    updateNotification("Error: Failed to start tracking")
+                    // Retry after a delay
+                    kotlinx.coroutines.delay(5000)
+                    handleActivityDetected(activityType, confidence)
                 }
-                
-                // Start new session
-                val newSessionId = startActivityTrackingUseCase(detectedActivity)
-                currentSessionId = newSessionId
-                currentActivityType = detectedActivity
-                
-                // Start location tracking
-                startLocationTracking(newSessionId)
-                
-                // Update notification
-                updateNotification("Tracking: ${detectedActivity.name}")
             }
         }
     }

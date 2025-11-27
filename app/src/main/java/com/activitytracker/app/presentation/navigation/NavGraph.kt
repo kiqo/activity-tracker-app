@@ -67,8 +67,9 @@ fun NavGraph(
         
         // Statistics screen
         composable(Screen.Statistics.route) {
-            // StatisticsScreen will be implemented in Task 10
-            // StatisticsScreen(navController = navController)
+            com.activitytracker.app.presentation.statistics.StatisticsScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
         }
     }
 }

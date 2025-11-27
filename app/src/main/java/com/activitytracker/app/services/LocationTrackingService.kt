@@ -93,40 +93,92 @@ class LocationTrackingService : Service() {
     private fun startLocationTracking(sessionId: Long) {
         currentSessionId = sessionId
         
-        // Check location permission
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            stopSelf()
-            return
-        }
+        try {
+            // Check if Google Play Services is available
+            val googleApiAvailability = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this)
+            
+            if (resultCode != com.google.android.gms.common.ConnectionResult.SUCCESS) {
+                android.util.Log.e("LocationTracking", "Google Play Services not available: $resultCode")
+                updateNotification("Error: Google Play Services unavailable")
+                stopSelf()
+                return
+            }
+            
+            // Check if location services are enabled
+            val locationManager = getSystemService(LOCATION_SERVICE) as? android.location.LocationManager
+            val isGpsEnabled = locationManager?.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ?: false
+            val isNetworkEnabled = locationManager?.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER) ?: false
+            
+            if (!isGpsEnabled && !isNetworkEnabled) {
+                android.util.Log.e("LocationTracking", "Location services are disabled")
+                updateNotification("Error: Location services disabled")
+                stopSelf()
+                return
+            }
+            
+            // Check location permission
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                android.util.Log.e("LocationTracking", "Location permission not granted")
+                updateNotification("Error: Permission denied")
+                stopSelf()
+                return
+            }
 
-        // Create location request
-        val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            LOCATION_UPDATE_INTERVAL_MS
-        ).apply {
-            setMinUpdateIntervalMillis(LOCATION_FASTEST_INTERVAL_MS)
-            setWaitForAccurateLocation(false)
-        }.build()
+            // Create location request
+            val locationRequest = LocationRequest.Builder(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                LOCATION_UPDATE_INTERVAL_MS
+            ).apply {
+                setMinUpdateIntervalMillis(LOCATION_FASTEST_INTERVAL_MS)
+                setWaitForAccurateLocation(false)
+            }.build()
 
-        // Create location callback
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationResult.lastLocation?.let { location ->
-                    handleLocationUpdate(location)
+            // Create location callback
+            locationCallback = object : LocationCallback() {
+                override fun onLocationResult(locationResult: LocationResult) {
+                    locationResult.lastLocation?.let { location ->
+                        handleLocationUpdate(location)
+                    } ?: run {
+                        // No location available - GPS signal lost
+                        android.util.Log.w("LocationTracking", "No location in result")
+                        updateNotification("Waiting for GPS signal...")
+                    }
                 }
             }
-        }
 
-        // Request location updates
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback!!,
-            Looper.getMainLooper()
-        )
+            // Request location updates
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback!!,
+                Looper.getMainLooper()
+            ).addOnSuccessListener {
+                android.util.Log.d("LocationTracking", "Location updates started successfully")
+                updateNotification("Tracking location")
+            }.addOnFailureListener { e ->
+                android.util.Log.e("LocationTracking", "Failed to start location updates", e)
+                updateNotification("Error: Failed to start location tracking")
+                // Retry after a delay
+                serviceScope.launch {
+                    kotlinx.coroutines.delay(10000)
+                    if (currentSessionId != null) {
+                        startLocationTracking(sessionId)
+                    }
+                }
+            }
+        } catch (e: SecurityException) {
+            android.util.Log.e("LocationTracking", "Security exception", e)
+            updateNotification("Error: Permission denied")
+            stopSelf()
+        } catch (e: Exception) {
+            android.util.Log.e("LocationTracking", "Failed to start location tracking", e)
+            updateNotification("Error: Failed to start tracking")
+            stopSelf()
+        }
     }
 
     /**
@@ -158,21 +210,38 @@ class LocationTrackingService : Service() {
         
         // Store location point in database
         serviceScope.launch(Dispatchers.IO) {
-            try {
-                locationRepository.insertLocationPoint(locationPoint)
-                
-                // Update notification with accuracy info
-                launch(Dispatchers.Main) {
-                    val accuracyText = if (location.accuracy < ACCURACY_THRESHOLD_METERS) {
-                        "Tracking (Good GPS: ${location.accuracy.toInt()}m)"
-                    } else {
-                        "Tracking (Poor GPS: ${location.accuracy.toInt()}m)"
+            var retryCount = 0
+            val maxRetries = 3
+            
+            while (retryCount < maxRetries) {
+                try {
+                    locationRepository.insertLocationPoint(locationPoint)
+                    
+                    // Update notification with accuracy info
+                    launch(Dispatchers.Main) {
+                        val accuracyText = if (location.accuracy < ACCURACY_THRESHOLD_METERS) {
+                            "Tracking (Good GPS: ${location.accuracy.toInt()}m)"
+                        } else {
+                            "Tracking (Poor GPS: ${location.accuracy.toInt()}m)"
+                        }
+                        updateNotification(accuracyText)
                     }
-                    updateNotification(accuracyText)
+                    break // Success, exit retry loop
+                } catch (e: Exception) {
+                    retryCount++
+                    android.util.Log.e("LocationTracking", "Failed to save location (attempt $retryCount/$maxRetries)", e)
+                    
+                    if (retryCount >= maxRetries) {
+                        // Failed after all retries
+                        android.util.Log.e("LocationTracking", "Failed to save location after $maxRetries attempts")
+                        launch(Dispatchers.Main) {
+                            updateNotification("Error: Failed to save location")
+                        }
+                    } else {
+                        // Wait before retrying
+                        kotlinx.coroutines.delay(1000L * retryCount)
+                    }
                 }
-            } catch (e: Exception) {
-                // Log error but continue tracking
-                e.printStackTrace()
             }
         }
     }
