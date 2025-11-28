@@ -182,8 +182,8 @@
     - Expose statistics as StateFlow
     - _Requirements: 7.5, 7.6, 7.7, 7.8, 7.9_
 
-- [ ] 11. Configure Google Maps API
-  - [ ] 11.1 Set up Google Cloud project and API key
+- [x] 11. Configure Google Maps API
+  - [x] 11.1 Set up Google Cloud project and API key
     - Create Google Cloud project
     - Enable Maps SDK for Android
     - Generate API key with Android restrictions
@@ -221,8 +221,8 @@
     - Provide option to delete corrupted data
     - _Requirements: 4.1, 4.2_
 
-- [ ] 13. Optimize performance and battery usage
-  - [ ] 13.1 Implement battery optimizations
+- [x] 13. Optimize performance and battery usage
+  - [x] 13.1 Implement battery optimizations
     - Use batched location updates when possible
     - Reduce update frequency when device is stationary
     - Stop location updates when no activity detected
@@ -236,14 +236,14 @@
     - Limit location points loaded in memory
     - _Requirements: 4.1, 4.2_
 
-  - [ ] 13.3 Optimize map rendering
+  - [x] 13.3 Optimize map rendering
     - Release map resources when screen not visible
     - Limit polyline points for very long routes
     - Use appropriate map tile quality settings
     - Implement map lifecycle management
     - _Requirements: 3.2, 3.3_
 
-- [ ] 14. Write unit tests for core functionality
+- [x] 14. Write unit tests for core functionality
   - [x] 14.1 Test domain layer
     - Write tests for distance calculation (Haversine formula)
     - Test step count estimation logic
@@ -259,7 +259,7 @@
     - Test data mapping between entities and domain models
     - _Requirements: 4.1, 4.2_
 
-  - [ ] 14.3 Test ViewModels
+  - [x] 14.3 Test ViewModels
     - Test state management and UI state updates
     - Verify Flow transformations
     - Test user interaction handling

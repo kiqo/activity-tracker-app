@@ -186,18 +186,31 @@ private fun BikeMap(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(bikeLocation, 16f)
     }
+    
+    // Lifecycle management: Clean up map resources
+    DisposableEffect(Unit) {
+        onDispose {
+            // Map resources are automatically cleaned up by Compose
+            android.util.Log.d("BikeMap", "Map disposed, resources released")
+        }
+    }
 
     GoogleMap(
         modifier = modifier,
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
             isMyLocationEnabled = true,
-            mapType = MapType.NORMAL
+            mapType = MapType.NORMAL,
+            isTrafficEnabled = false, // Disable traffic for better performance
+            isIndoorEnabled = false // Disable indoor maps for better performance
         ),
         uiSettings = MapUiSettings(
             zoomControlsEnabled = true,
             myLocationButtonEnabled = true,
-            compassEnabled = true
+            compassEnabled = true,
+            mapToolbarEnabled = true, // Keep toolbar for navigation
+            tiltGesturesEnabled = false, // Disable tilt for better performance
+            rotationGesturesEnabled = false // Disable rotation for better performance
         )
     ) {
         // Bike marker

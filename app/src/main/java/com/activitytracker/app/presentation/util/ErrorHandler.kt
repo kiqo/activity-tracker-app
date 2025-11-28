@@ -37,11 +37,14 @@ object ErrorHandler {
         val googleApiAvailability = GoogleApiAvailability.getInstance()
         if (googleApiAvailability.isUserResolvableError(resultCode)) {
             // This will show a dialog to the user
-            googleApiAvailability.getErrorDialog(
-                context as? android.app.Activity,
-                resultCode,
-                REQUEST_CODE_GOOGLE_PLAY_SERVICES
-            )?.show()
+            val activity = context as? android.app.Activity
+            if (activity != null) {
+                googleApiAvailability.getErrorDialog(
+                    activity,
+                    resultCode,
+                    REQUEST_CODE_GOOGLE_PLAY_SERVICES
+                )?.show()
+            }
         }
     }
     

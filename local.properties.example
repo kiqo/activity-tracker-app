@@ -1,8 +1,8 @@
 ## This file must be created as local.properties (not tracked in git)
 ## It contains local configuration for your development environment
 
-# Location of the Android SDK
-sdk.dir=/path/to/Android/sdk
+# Location of the Android SDK, on darwin
+sdk.dir=/Users/<username>/Library/Android/sdk
 
 # Google Maps API Key
 # Get your API key from: https://console.cloud.google.com/google/maps-apis

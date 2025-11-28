@@ -4,6 +4,7 @@ import com.activitytracker.app.domain.model.ActivitySession
 import com.activitytracker.app.domain.model.ActivityType
 import com.activitytracker.app.domain.model.TimeInterval
 import com.activitytracker.app.domain.repository.ActivityRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -38,13 +39,17 @@ class GetActivityStatisticsUseCaseTest {
             .thenReturn(flowOf(emptyList()))
 
         // When
-        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
+        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY).first()
 
         // Then
         assertEquals(0.0, statistics.walkingDistanceKm, 0.01)
         assertEquals(0.0, statistics.cyclingDistanceKm, 0.01)
         assertEquals(0.0, statistics.runningDistanceKm, 0.01)
         assertEquals(0, statistics.totalSteps)
+        assertEquals(0, statistics.walkingCount)
+        assertEquals(0, statistics.cyclingCount)
+        assertEquals(0, statistics.runningCount)
+        assertEquals(0, statistics.vehicleCount)
     }
 
     @Test
@@ -74,7 +79,7 @@ class GetActivityStatisticsUseCaseTest {
             .thenReturn(flowOf(sessions))
 
         // When
-        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
+        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY).first()
 
         // Then - 3 km total
         assertEquals(3.0, statistics.walkingDistanceKm, 0.01)
@@ -108,7 +113,7 @@ class GetActivityStatisticsUseCaseTest {
             .thenReturn(flowOf(sessions))
 
         // When
-        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
+        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY).first()
 
         // Then - 15 km total
         assertEquals(15.0, statistics.cyclingDistanceKm, 0.01)
@@ -142,7 +147,7 @@ class GetActivityStatisticsUseCaseTest {
             .thenReturn(flowOf(sessions))
 
         // When
-        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
+        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY).first()
 
         // Then - 5 km total
         assertEquals(5.0, statistics.runningDistanceKm, 0.01)
@@ -185,7 +190,7 @@ class GetActivityStatisticsUseCaseTest {
             .thenReturn(flowOf(sessions))
 
         // When
-        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
+        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY).first()
 
         // Then
         assertEquals(1.0, statistics.walkingDistanceKm, 0.01)
@@ -212,7 +217,7 @@ class GetActivityStatisticsUseCaseTest {
             .thenReturn(flowOf(sessions))
 
         // When
-        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
+        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY).first()
 
         // Then - all zeros
         assertEquals(0.0, statistics.walkingDistanceKm, 0.01)
@@ -239,7 +244,7 @@ class GetActivityStatisticsUseCaseTest {
             .thenReturn(flowOf(sessions))
 
         // When
-        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY)
+        val statistics = getActivityStatisticsUseCase(TimeInterval.DAILY).first()
 
         // Then - 2.5 km
         assertEquals(2.5, statistics.walkingDistanceKm, 0.01)

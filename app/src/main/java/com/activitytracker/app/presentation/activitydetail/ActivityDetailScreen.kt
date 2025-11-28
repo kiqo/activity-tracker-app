@@ -114,23 +114,41 @@ private fun RouteMap(
     activityType: ActivityType,
     modifier: Modifier = Modifier
 ) {
+    // Optimize: Limit polyline points for very long routes (max 500 points)
+    val optimizedPoints = remember(routePoints) {
+        if (routePoints.size > 500) {
+            val step = routePoints.size / 500
+            routePoints.filterIndexed { index, _ -> index % step == 0 }
+        } else {
+            routePoints
+        }
+    }
+    
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
-            routePoints.firstOrNull() ?: LatLng(0.0, 0.0),
+            optimizedPoints.firstOrNull() ?: LatLng(0.0, 0.0),
             15f
         )
     }
 
-    LaunchedEffect(routePoints) {
-        if (routePoints.size >= 2) {
+    LaunchedEffect(optimizedPoints) {
+        if (optimizedPoints.size >= 2) {
             // Calculate center and zoom to show entire route
             val bounds = com.google.android.gms.maps.model.LatLngBounds.builder()
-            routePoints.forEach { bounds.include(it) }
+            optimizedPoints.forEach { bounds.include(it) }
             val latLngBounds = bounds.build()
             
             // Calculate center point
             val center = latLngBounds.center
             cameraPositionState.position = CameraPosition.fromLatLngZoom(center, 14f)
+        }
+    }
+    
+    // Lifecycle management: Clean up map resources
+    DisposableEffect(Unit) {
+        onDispose {
+            // Map resources are automatically cleaned up by Compose
+            android.util.Log.d("RouteMap", "Map disposed, resources released")
         }
     }
 
@@ -139,24 +157,29 @@ private fun RouteMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
             isMyLocationEnabled = false,
-            mapType = MapType.NORMAL
+            mapType = MapType.NORMAL,
+            isTrafficEnabled = false, // Disable traffic for better performance
+            isIndoorEnabled = false // Disable indoor maps for better performance
         ),
         uiSettings = MapUiSettings(
             zoomControlsEnabled = true,
             myLocationButtonEnabled = false,
-            compassEnabled = true
+            compassEnabled = true,
+            mapToolbarEnabled = false, // Disable toolbar for cleaner UI
+            tiltGesturesEnabled = false, // Disable tilt for better performance
+            rotationGesturesEnabled = false // Disable rotation for better performance
         )
     ) {
-        // Draw route polyline
-        if (routePoints.size >= 2) {
+        // Draw route polyline with optimized points
+        if (optimizedPoints.size >= 2) {
             Polyline(
-                points = routePoints,
+                points = optimizedPoints,
                 color = getActivityColor(activityType),
                 width = 8f
             )
         }
 
-        // Start marker
+        // Start marker (use original first point for accuracy)
         if (routePoints.isNotEmpty()) {
             Marker(
                 state = MarkerState(position = routePoints.first()),

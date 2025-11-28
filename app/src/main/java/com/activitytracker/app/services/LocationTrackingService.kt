@@ -46,11 +46,16 @@ class LocationTrackingService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var currentSessionId: Long? = null
     private var locationCallback: LocationCallback? = null
+    private var lastLocation: Location? = null
+    private var isStationary = false
 
     companion object {
         private const val NOTIFICATION_ID = 1002
         private const val LOCATION_UPDATE_INTERVAL_MS = 10_000L // 10 seconds
         private const val LOCATION_FASTEST_INTERVAL_MS = 5_000L // 5 seconds
+        private const val LOCATION_UPDATE_INTERVAL_STATIONARY_MS = 30_000L // 30 seconds when stationary
+        private const val MAX_WAIT_TIME_MS = 60_000L // 1 minute for batched updates
+        private const val STATIONARY_DISTANCE_THRESHOLD = 20f // 20 meters
         const val ACCURACY_THRESHOLD_METERS = 50f
         
         const val ACTION_START_TRACKING = "com.activitytracker.app.START_LOCATION_TRACKING"
@@ -124,17 +129,18 @@ class LocationTrackingService : Service() {
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 android.util.Log.e("LocationTracking", "Location permission not granted")
-                updateNotification("Error: Permission denied")
+                updateNotification("Error: Location permission denied")
                 stopSelf()
                 return
             }
 
-            // Create location request
+            // Create location request with battery optimizations
             val locationRequest = LocationRequest.Builder(
                 Priority.PRIORITY_HIGH_ACCURACY,
-                LOCATION_UPDATE_INTERVAL_MS
+                if (isStationary) LOCATION_UPDATE_INTERVAL_STATIONARY_MS else LOCATION_UPDATE_INTERVAL_MS
             ).apply {
                 setMinUpdateIntervalMillis(LOCATION_FASTEST_INTERVAL_MS)
+                setMaxUpdateDelayMillis(MAX_WAIT_TIME_MS) // Enable batched updates
                 setWaitForAccurateLocation(false)
             }.build()
 
@@ -190,14 +196,41 @@ class LocationTrackingService : Service() {
         }
         locationCallback = null
         currentSessionId = null
+        lastLocation = null
+        isStationary = false
+    }
+    
+    /**
+     * Restart location updates with adjusted interval based on stationary state.
+     * Used for battery optimization when user is not moving.
+     */
+    private fun restartLocationUpdates(sessionId: Long) {
+        stopLocationTracking()
+        currentSessionId = sessionId
+        startLocationTracking(sessionId)
     }
 
     /**
      * Handle a location update from FusedLocationProviderClient.
      * Stores all location data in database with accuracy filtering for route display.
+     * Implements stationary detection for battery optimization.
      */
     private fun handleLocationUpdate(location: Location) {
         val sessionId = currentSessionId ?: return
+        
+        // Check if user is stationary (battery optimization)
+        val wasStationary = isStationary
+        lastLocation?.let { last ->
+            val distance = last.distanceTo(location)
+            isStationary = distance < STATIONARY_DISTANCE_THRESHOLD
+            
+            // If stationary state changed, restart location updates with new interval
+            if (wasStationary != isStationary) {
+                android.util.Log.d("LocationTracking", "Stationary state changed: $isStationary")
+                restartLocationUpdates(sessionId)
+            }
+        }
+        lastLocation = location
         
         val locationPoint = LocationPoint(
             sessionId = sessionId,
@@ -217,12 +250,13 @@ class LocationTrackingService : Service() {
                 try {
                     locationRepository.insertLocationPoint(locationPoint)
                     
-                    // Update notification with accuracy info
+                    // Update notification with accuracy and stationary info
                     launch(Dispatchers.Main) {
+                        val stationaryText = if (isStationary) " (Stationary)" else ""
                         val accuracyText = if (location.accuracy < ACCURACY_THRESHOLD_METERS) {
-                            "Tracking (Good GPS: ${location.accuracy.toInt()}m)"
+                            "Tracking (Good GPS: ${location.accuracy.toInt()}m)$stationaryText"
                         } else {
-                            "Tracking (Poor GPS: ${location.accuracy.toInt()}m)"
+                            "Tracking (Poor GPS: ${location.accuracy.toInt()}m)$stationaryText"
                         }
                         updateNotification(accuracyText)
                     }

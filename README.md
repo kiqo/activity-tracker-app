@@ -181,7 +181,7 @@ The project includes:
 Run tests with:
 
 ```bash
-./gradlew test
+./gradlew test [--continue]
 ./gradlew connectedAndroidTest
 ```
 
@@ -191,15 +191,3 @@ Run tests with:
 - No data is transmitted to external servers
 - The app only requires internet for downloading map tiles
 - You can delete all data by clearing the app's data in Android settings
-
-## License
-
-[Add your license here]
-
-## Contributing
-
-[Add contribution guidelines here]
-
-## Support
-
-[Add support information here]
