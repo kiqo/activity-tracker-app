@@ -11,16 +11,16 @@ import com.activitytracker.app.data.local.entity.LocationPointEntity
  * Room database for Activity Tracker App.
  * Stores activity sessions and location points locally on device.
  * 
- * Database version 1:
- * - ActivitySessionEntity: Stores activity session metadata
- * - LocationPointEntity: Stores GPS location points with foreign key to sessions
+ * Database version 2:
+ * - ActivitySessionEntity: Stores activity session metadata with indexes on startTime and activityType
+ * - LocationPointEntity: Stores GPS location points with foreign key to sessions and index on sessionId
  */
 @Database(
     entities = [
         ActivitySessionEntity::class,
         LocationPointEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

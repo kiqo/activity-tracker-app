@@ -53,6 +53,7 @@ interface LocationPointDao {
     /**
      * Insert multiple location points in a single transaction.
      */
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLocationPoints(points: List<LocationPointEntity>)
     

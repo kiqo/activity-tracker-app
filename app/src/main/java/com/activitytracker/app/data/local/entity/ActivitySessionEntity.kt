@@ -7,7 +7,13 @@ import androidx.room.PrimaryKey
  * Room entity representing an activity tracking session.
  * Stores metadata about a continuous period of a single activity type.
  */
-@Entity(tableName = "activity_sessions")
+@Entity(
+    tableName = "activity_sessions",
+    indices = [
+        androidx.room.Index(value = ["startTime"], name = "index_activity_sessions_startTime"),
+        androidx.room.Index(value = ["activityType"], name = "index_activity_sessions_activityType")
+    ]
+)
 data class ActivitySessionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

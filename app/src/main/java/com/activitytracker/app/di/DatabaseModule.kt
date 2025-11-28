@@ -29,8 +29,25 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
+            .addMigrations(MIGRATION_1_2)
             .fallbackToDestructiveMigration() // For development; use proper migrations in production
             .build()
+    }
+    
+    /**
+     * Migration from version 1 to 2: Add indexes for performance optimization.
+     */
+    private val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+        override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+            // Add index on startTime for activity_sessions table
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_activity_sessions_startTime ON activity_sessions(startTime)"
+            )
+            // Add index on activityType for activity_sessions table
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_activity_sessions_activityType ON activity_sessions(activityType)"
+            )
+        }
     }
     
     @Provides
