@@ -63,6 +63,16 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
+        <!-- Activity Transition Receiver -->
+        <receiver
+            android:name=".services.ActivityTransitionReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.activitytracker.app.ACTIVITY_TRANSITION" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

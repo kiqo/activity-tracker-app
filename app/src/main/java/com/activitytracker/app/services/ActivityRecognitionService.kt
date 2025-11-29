@@ -52,15 +52,35 @@ class ActivityRecognitionService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val CONFIDENCE_THRESHOLD = 75
         private const val INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000L // 5 minutes
+        private const val REQUEST_CODE_ACTIVITY_TRANSITION = 1001
         
         const val ACTION_START_TRACKING = "com.activitytracker.app.START_TRACKING"
         const val ACTION_STOP_TRACKING = "com.activitytracker.app.STOP_TRACKING"
+        const val ACTION_ACTIVITY_DETECTED = "com.activitytracker.app.ACTIVITY_DETECTED"
+        const val ACTION_CHECK_INACTIVITY = "com.activitytracker.app.CHECK_INACTIVITY"
+        
+        const val EXTRA_ACTIVITY_TYPE = "activity_type"
+        const val EXTRA_CONFIDENCE = "confidence"
     }
+    
+    private var transitionPendingIntent: PendingIntent? = null
 
     override fun onCreate() {
         super.onCreate()
         activityRecognitionClient = ActivityRecognition.getClient(this)
         startForeground(NOTIFICATION_ID, createNotification("Monitoring activities"))
+        
+        // Start periodic inactivity check
+        startInactivityCheck()
+    }
+    
+    private fun startInactivityCheck() {
+        serviceScope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(60_000L) // Check every minute
+                checkInactivityTimeout()
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -71,6 +91,16 @@ class ActivityRecognitionService : Service() {
             ACTION_STOP_TRACKING -> {
                 stopTracking()
                 stopSelf()
+            }
+            ACTION_ACTIVITY_DETECTED -> {
+                val activityType = intent.getIntExtra(EXTRA_ACTIVITY_TYPE, -1)
+                val confidence = intent.getIntExtra(EXTRA_CONFIDENCE, 0)
+                if (activityType != -1) {
+                    handleActivityDetected(activityType, confidence)
+                }
+            }
+            ACTION_CHECK_INACTIVITY -> {
+                checkInactivityTimeout()
             }
         }
         return START_STICKY
@@ -134,10 +164,27 @@ class ActivityRecognitionService : Service() {
             
             val request = ActivityTransitionRequest(transitions)
             
-            // Note: In a full implementation, you would create a PendingIntent
-            // that receives activity transition updates via a BroadcastReceiver
-            // For now, this is a placeholder for the registration
-            // TODO: Implement ActivityTransitionReceiver and register with PendingIntent
+            // Create PendingIntent for BroadcastReceiver
+            val intent = Intent(this, ActivityTransitionReceiver::class.java).apply {
+                action = ActivityTransitionReceiver.ACTION_ACTIVITY_TRANSITION
+            }
+            transitionPendingIntent = PendingIntent.getBroadcast(
+                this,
+                REQUEST_CODE_ACTIVITY_TRANSITION,
+                intent,
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            
+            // Register for activity transition updates
+            activityRecognitionClient.requestActivityTransitionUpdates(request, transitionPendingIntent!!)
+                .addOnSuccessListener {
+                    android.util.Log.d("ActivityRecognition", "Activity recognition registered successfully")
+                    updateNotification("Monitoring activities")
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("ActivityRecognition", "Failed to register activity recognition", e)
+                    updateNotification("Error: Failed to start monitoring")
+                }
         } catch (e: SecurityException) {
             android.util.Log.e("ActivityRecognition", "Permission denied", e)
             updateNotification("Error: Permission denied")
@@ -151,7 +198,16 @@ class ActivityRecognitionService : Service() {
      * Unregister from activity recognition updates.
      */
     private fun unregisterActivityRecognition() {
-        // TODO: Remove activity transition updates
+        transitionPendingIntent?.let { pendingIntent ->
+            activityRecognitionClient.removeActivityTransitionUpdates(pendingIntent)
+                .addOnSuccessListener {
+                    android.util.Log.d("ActivityRecognition", "Activity recognition unregistered successfully")
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("ActivityRecognition", "Failed to unregister activity recognition", e)
+                }
+        }
+        transitionPendingIntent = null
     }
 
     /**

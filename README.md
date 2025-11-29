@@ -153,7 +153,7 @@ All dependencies are managed in `app/build.gradle.kts`. Key dependencies include
 - Google Maps Compose 4.3.3
 - Kotlin Coroutines 1.7.3
 
-### Building
+## Building and Installation
 
 ```bash
 # Debug build
@@ -167,6 +167,32 @@ All dependencies are managed in `app/build.gradle.kts`. Key dependencies include
 
 # Run instrumented tests
 ./gradlew connectedAndroidTest
+# If this fails: Plugin your phone and allow USB Debugging
+# debug with: adb devices
+
+# Build & install to connected device
+./gradlew installDebug
+
+# Altearnatively: Build and install via adb
+./gradlew assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+# Errors and warnings only
+adb logcat *:E *:W
+```
+
+## Debug
+
+View App logs:
+```
+# all app logs
+adb logcat | grep "com.activitytracker.app"
+
+# Last 500 lines (not live)
+adb logcat -d | tail -500
+
+# Only your app's errors
+adb logcat -d | grep "com.activitytracker.app" | grep "E/"
 ```
 
 ## Testing
