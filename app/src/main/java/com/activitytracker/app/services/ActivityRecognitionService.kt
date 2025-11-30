@@ -213,6 +213,11 @@ class ActivityRecognitionService : Service() {
     /**
      * Handle detected activity with confidence filtering.
      * Creates new session if confidence > 75%.
+     * 
+     * Note: This only manages AUTOMATIC sessions (Req 1.5, 1.6).
+     * Manual sessions are managed independently by the user through the UI.
+     * The StartActivityTrackingUseCase handles stopping existing automatic sessions
+     * before creating new ones, ensuring at most 1 automatic session is active.
      */
     private fun handleActivityDetected(activityType: Int, confidence: Int) {
         if (confidence < CONFIDENCE_THRESHOLD) {
@@ -222,23 +227,18 @@ class ActivityRecognitionService : Service() {
         val detectedActivity = mapToActivityType(activityType) ?: return
         lastActivityTime = System.currentTimeMillis()
         
-        // If this is a different activity type, end current session and start new one
+        // If this is a different activity type, start new automatic session
+        // The StartActivityTrackingUseCase will handle stopping any existing automatic session
         if (detectedActivity != currentActivityType) {
             serviceScope.launch {
                 try {
-                    // End current session
-                    currentSessionId?.let { sessionId ->
-                        stopActivityTrackingUseCase(sessionId)
-                        stopLocationTracking()
-                    }
-                    
-                    // Start new session (auto-detected, not manual)
+                    // Start new automatic session (isManual = false)
+                    // StartActivityTrackingUseCase will automatically stop any existing
+                    // automatic session before creating the new one (Req 1.6)
+                    // This does NOT affect any active manual sessions (Req 1.9)
                     val newSessionId = startActivityTrackingUseCase(detectedActivity, isManual = false)
                     currentSessionId = newSessionId
                     currentActivityType = detectedActivity
-                    
-                    // Start location tracking
-                    startLocationTracking(newSessionId)
                     
                     // Update notification
                     updateNotification("Tracking: ${detectedActivity.name}")

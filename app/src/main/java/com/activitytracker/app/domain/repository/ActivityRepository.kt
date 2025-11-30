@@ -51,4 +51,23 @@ interface ActivityRepository {
      * Delete an activity session by ID.
      */
     suspend fun deleteSession(id: Long)
+    
+    /**
+     * Get all currently active sessions (where endTime is null).
+     */
+    fun getActiveSessions(): Flow<List<ActivitySession>>
+    
+    /**
+     * Get the active manually-started session (if any).
+     * Returns null if no manual session is currently active.
+     * Used to enforce at most 1 manual session active at a time (Requirement 1.7).
+     */
+    suspend fun getActiveManualSession(): ActivitySession?
+    
+    /**
+     * Get the active automatically-detected session (if any).
+     * Returns null if no automatic session is currently active.
+     * Used to enforce at most 1 automatic session active at a time (Requirement 1.5).
+     */
+    suspend fun getActiveAutomaticSession(): ActivitySession?
 }

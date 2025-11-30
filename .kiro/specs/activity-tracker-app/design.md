@@ -86,22 +86,57 @@ class ActivityRecognitionService : Service() {
 - Start/stop LocationTrackingService based on session state
 
 #### LocationTrackingService
-Foreground service that tracks GPS location during active sessions.
+Foreground service that tracks GPS location during active sessions (both manual and automatic).
 
 ```kotlin
 class LocationTrackingService : Service() {
     // Requests location updates every 10 seconds
     // Stores location points with accuracy filtering
+    // Works for both manually started and automatically detected sessions
+    // Runs as a singleton - only one instance regardless of number of active sessions
 }
 ```
 
 **Key Responsibilities:**
-- Request location updates at 10-second intervals using FusedLocationProviderClient (Requirement 2.1)
-- Store all location data (latitude, longitude, altitude, accuracy, timestamp) in database (Requirement 2.2)
+- Request location updates at 10-second intervals using FusedLocationProviderClient for all activity sessions (Requirement 2.1)
+- Track location for both manually started and automatically detected sessions (Requirement 2.6)
+- Store each location point ONCE in the database, then associate it with ALL active sessions via a junction table (no duplicate location data)
 - Include location points with accuracy < 50 meters in the route (Requirement 2.3)
 - Exclude location points with accuracy >= 50 meters from route but continue monitoring (Requirement 2.4)
-- Stop location updates when activity session ends (Requirement 2.5)
+- Stop location updates only when ALL activity sessions have ended (Requirement 2.5)
 - Display persistent notification (required for foreground service)
+
+**Shared Location Tracking Design:**
+
+When both a manual and automatic session are active simultaneously:
+1. LocationTrackingService runs as a single instance (singleton pattern)
+2. Each location update is stored ONCE in the `location_points` table
+3. The location point is associated with ALL active sessions via the `session_location_points` junction table
+4. This prevents duplicate location data in the database
+5. Service only stops when the last active session ends
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  LocationTrackingService                     │
+│                    (Single Instance)                         │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          │ Location Update (every 10s)
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Store location point ONCE                       │
+│              in location_points table                        │
+└─────────────────────────────────────────────────────────────┘
+                          │
+          ┌───────────────┴───────────────┐
+          ▼                               ▼
+┌──────────────────┐            ┌──────────────────┐
+│ Link to Manual   │            │ Link to Auto     │
+│ Session (if any) │            │ Session (if any) │
+│ via junction     │            │ via junction     │
+│ table            │            │ table            │
+└──────────────────┘            └──────────────────┘
+```
 
 ### 2. Data Layer
 
@@ -110,33 +145,35 @@ class LocationTrackingService : Service() {
 **ActivitySession Entity**
 ```kotlin
 @Entity(tableName = "activity_sessions")
+@TypeConverters(ActivityTypeConverter::class)
 data class ActivitySessionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val activityType: String, // CYCLING, RUNNING, WALKING, IN_VEHICLE
+    val activityType: ActivityType, // Enum: CYCLING, RUNNING, WALKING, IN_VEHICLE, etc.
     val startTime: Long,
     val endTime: Long?,
     val totalDistance: Double = 0.0, // meters
     val averageSpeed: Double = 0.0, // m/s
-    val stepCount: Int = 0
+    val stepCount: Int = 0,
+    val isManuallyStarted: Boolean = false
 )
+
+// Room TypeConverter for ActivityType enum
+class ActivityTypeConverter {
+    @TypeConverter
+    fun fromActivityType(activityType: ActivityType): String = activityType.name
+    
+    @TypeConverter
+    fun toActivityType(value: String): ActivityType = ActivityType.valueOf(value)
+}
 ```
 
 **LocationPoint Entity**
 ```kotlin
-@Entity(
-    tableName = "location_points",
-    foreignKeys = [ForeignKey(
-        entity = ActivitySessionEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["sessionId"],
-        onDelete = ForeignKey.CASCADE
-    )]
-)
+@Entity(tableName = "location_points")
 data class LocationPointEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val sessionId: Long,
     val latitude: Double,
     val longitude: Double,
     val altitude: Double?,
@@ -144,6 +181,43 @@ data class LocationPointEntity(
     val timestamp: Long
 )
 ```
+
+**SessionLocationPoint Junction Table (Many-to-Many)**
+```kotlin
+@Entity(
+    tableName = "session_location_points",
+    primaryKeys = ["sessionId", "locationPointId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = ActivitySessionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["sessionId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = LocationPointEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["locationPointId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index("sessionId"),
+        Index("locationPointId")
+    ]
+)
+data class SessionLocationPointEntity(
+    val sessionId: Long,
+    val locationPointId: Long
+)
+```
+
+**Design Rationale for Junction Table:**
+- Each location point is stored ONCE in `location_points` (no duplicate GPS data)
+- The `session_location_points` junction table links location points to sessions
+- When both manual and automatic sessions are active, each location point is linked to BOTH sessions
+- Cascade delete ensures location points are cleaned up when sessions are deleted
+- This design prevents data duplication while maintaining proper session-location relationships
 
 #### Repository Interfaces
 
@@ -153,6 +227,9 @@ interface ActivityRepository {
     fun getSessionById(id: Long): Flow<ActivitySession?>
     fun getSessionsInTimeRange(startTime: Long, endTime: Long): Flow<List<ActivitySession>>
     fun getLastCyclingSession(): Flow<ActivitySession?>
+    fun getActiveSessions(): Flow<List<ActivitySession>>
+    suspend fun getActiveManualSession(): ActivitySession?
+    suspend fun getActiveAutomaticSession(): ActivitySession?
     suspend fun insertSession(session: ActivitySession): Long
     suspend fun updateSession(session: ActivitySession)
     suspend fun deleteSession(id: Long)
@@ -160,10 +237,20 @@ interface ActivityRepository {
 
 interface LocationRepository {
     fun getLocationPointsForSession(sessionId: Long): Flow<List<LocationPoint>>
-    suspend fun insertLocationPoint(point: LocationPoint)
+    suspend fun insertLocationPoint(point: LocationPoint): Long
+    suspend fun linkLocationPointToSession(locationPointId: Long, sessionId: Long)
+    suspend fun linkLocationPointToAllActiveSessions(locationPointId: Long)
     suspend fun getLastLocationForSession(sessionId: Long): LocationPoint?
 }
 ```
+
+**New Methods:**
+- `getActiveSessions()`: Returns all sessions where `endTime` is null
+- `getActiveManualSession()`: Returns the active manually-started session (if any). Used by StartActivityTrackingUseCase to check if a manual session needs to be stopped before starting a new one.
+- `getActiveAutomaticSession()`: Returns the active automatically-detected session (if any). Used by StartActivityTrackingUseCase to check if an automatic session needs to be stopped before starting a new one.
+- `insertLocationPoint(point)`: Inserts a location point ONCE and returns its ID
+- `linkLocationPointToSession(locationPointId, sessionId)`: Creates a junction table entry linking a location point to a specific session
+- `linkLocationPointToAllActiveSessions(locationPointId)`: Links a location point to ALL currently active sessions (used by LocationTrackingService)
 
 ### 3. Domain Layer
 
@@ -171,8 +258,28 @@ interface LocationRepository {
 
 ```kotlin
 class StartActivityTrackingUseCase(
-    private val activityRepository: ActivityRepository
-)
+    private val activityRepository: ActivityRepository,
+    private val stopActivityTrackingUseCase: StopActivityTrackingUseCase
+) {
+    /**
+     * Starts a new activity session, ensuring at most 1 manual and 1 automatic session active.
+     * 
+     * Implementation (Requirements 1.5, 1.6, 1.7, 1.8, 1.9):
+     * 1. Query for active sessions with matching isManuallyStarted flag
+     * 2. If an active session of the same type (manual/auto) exists, stop it first
+     * 3. Create and insert new session
+     * 4. Start location tracking service
+     * 
+     * This ensures:
+     * - At most 1 manual session active (Req 1.7, 1.9)
+     * - At most 1 automatic session active (Req 1.5, 1.6)
+     * - Both can coexist simultaneously (Req 1.8)
+     */
+    suspend operator fun invoke(
+        activityType: ActivityType, 
+        isManual: Boolean = true
+    ): Long
+}
 
 class StopActivityTrackingUseCase(
     private val activityRepository: ActivityRepository,
@@ -360,17 +467,46 @@ fun estimateSteps(distanceMeters: Double, activityType: ActivityType): Int {
 
 ### Activity Session State Machine
 
-This state machine implements Requirements 1.2, 1.3, and 1.4 for automatic activity detection and session management.
+This state machine implements Requirements 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, and 1.9 for activity detection and session management.
+
+**Dual-Track Session Management:**
+
+The app maintains two independent session tracks:
+- **Manual Track**: At most 1 manually-started session (Req 1.7)
+- **Automatic Track**: At most 1 automatically-detected session (Req 1.5)
+- Both tracks can have active sessions simultaneously (Req 1.8)
 
 ```
+Manual Track:
+┌─────────┐
+│  IDLE   │
+└────┬────┘
+     │ User starts manual tracking
+     │ → End existing manual session if any (Req 1.9)
+     │ → Create new manual session
+     ▼
+┌─────────────┐
+│  TRACKING   │
+│  (Manual)   │
+└────┬────────┘
+     │ User stops tracking
+     │ → End manual session
+     ▼
+┌─────────┐
+│  ENDED  │
+└─────────┘
+
+Automatic Track:
 ┌─────────┐
 │  IDLE   │
 └────┬────┘
      │ Activity detected (confidence > 75%)
-     │ → Create new session (Req 1.2)
+     │ → End existing auto session if any (Req 1.6)
+     │ → Create new auto session (Req 1.2)
      ▼
 ┌─────────────┐
 │  TRACKING   │◄──┐
+│  (Auto)     │   │
 └────┬────────┘   │
      │             │ Same activity continues
      │             │ (confidence > 75%)
@@ -378,15 +514,15 @@ This state machine implements Requirements 1.2, 1.3, and 1.4 for automatic activ
      │
      │ Trigger: Inactivity > 5 min (Req 1.4)
      │      OR Activity type changed (Req 1.3)
-     │ → End current session
-     │ → If activity changed: Create new session
+     │ → End current auto session
+     │ → If activity changed: Create new auto session
      ▼
 ┌─────────┐
 │  ENDED  │
 └─────────┘
 ```
 
-**Design Rationale:** The state machine ensures clean session boundaries by ending the current session before starting a new one when activity type changes. This prevents overlapping sessions and maintains data integrity. The 5-minute inactivity timeout balances between capturing complete activities and avoiding unnecessarily long sessions during breaks.
+**Design Rationale:** The dual-track approach allows users to manually track one activity (e.g., a gym workout) while the system automatically detects and tracks another activity (e.g., walking to the gym). Each track maintains its own state machine, ensuring clean session boundaries within each track. The `isManuallyStarted` flag distinguishes between the two tracks. This design prevents conflicts between manual and automatic sessions while maintaining data integrity within each track.
 
 ## Error Handling
 

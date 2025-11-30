@@ -160,4 +160,40 @@ class ActivityRepositoryImpl @Inject constructor(
             throw e
         }
     }
+    
+    override fun getActiveSessions(): Flow<List<ActivitySession>> {
+        return activitySessionDao.getActiveSessions()
+            .map { entities -> 
+                entities.mapNotNull { entity ->
+                    try {
+                        entity.toDomain()
+                    } catch (e: Exception) {
+                        android.util.Log.e("ActivityRepository", "Failed to map entity to domain", e)
+                        null
+                    }
+                }
+            }
+            .catch { e ->
+                android.util.Log.e("ActivityRepository", "Database read error", e)
+                emit(emptyList())
+            }
+    }
+    
+    override suspend fun getActiveManualSession(): ActivitySession? {
+        return try {
+            activitySessionDao.getActiveManualSession()?.toDomain()
+        } catch (e: Exception) {
+            android.util.Log.e("ActivityRepository", "Failed to get active manual session", e)
+            null
+        }
+    }
+    
+    override suspend fun getActiveAutomaticSession(): ActivitySession? {
+        return try {
+            activitySessionDao.getActiveAutomaticSession()?.toDomain()
+        } catch (e: Exception) {
+            android.util.Log.e("ActivityRepository", "Failed to get active automatic session", e)
+            null
+        }
+    }
 }

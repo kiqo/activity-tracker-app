@@ -28,18 +28,22 @@ The Activity Tracker App is a native Android application that automatically dete
 4. WHEN an Activity Session has been inactive for more than 5 minutes, THE Activity Tracker App SHALL automatically end the Activity Session
 5. THE Activity Tracker App SHALL allow at most one automatically-detected Activity Session to be active at any time
 6. WHEN a new automatically-detected Activity Session is created, THE Activity Tracker App SHALL end any existing automatically-detected Activity Session before starting the new session
+7. THE Activity Tracker App SHALL allow at most one manually-started Activity Session to be active at any time
+8. WHEN a new manually-started Activity Session is created, THE Activity Tracker App SHALL end any existing manually-started Activity Session before starting the new session
+9. THE Activity Tracker App SHALL allow both one manually-started Activity Session and one automatically-detected Activity Session to be active simultaneously
 
 ### Requirement 2
 
-**User Story:** As a user, I want my location to be tracked during activities, so that I can see the routes I took on a map.
+**User Story:** As a user, I want my location to be tracked during all activities (both manually started and automatically detected), so that I can see the routes I took on a map.
 
 #### Acceptance Criteria
 
-1. WHEN an Activity Session starts, THE Activity Tracker App SHALL request location updates from Location Services at intervals of 10 seconds or less
+1. WHEN an Activity Session starts (whether manually started or automatically detected), THE Activity Tracker App SHALL request location updates from Location Services at intervals of 10 seconds or less
 2. WHEN Location Services provides a location update during an active Activity Session, THE Activity Tracker App SHALL store the latitude, longitude, altitude, accuracy, and timestamp in Local Storage
 3. WHEN location accuracy is below 50 meters, THE Activity Tracker App SHALL include the location point in the Route
 4. WHEN location accuracy is 50 meters or greater, THE Activity Tracker App SHALL exclude the location point from the Route but continue monitoring
 5. WHEN an Activity Session ends, THE Activity Tracker App SHALL stop requesting location updates from Location Services
+6. THE Activity Tracker App SHALL track location for both manually started Activity Sessions and automatically detected Activity Sessions
 
 ### Requirement 3
 

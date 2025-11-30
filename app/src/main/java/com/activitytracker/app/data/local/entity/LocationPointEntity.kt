@@ -1,31 +1,25 @@
 package com.activitytracker.app.data.local.entity
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * Room entity representing a GPS location point during an activity session.
- * Foreign key relationship ensures cascade deletion when parent session is deleted.
+ * Room entity representing a GPS location point.
+ * 
+ * Location points are stored ONCE and linked to sessions via the SessionLocationPointEntity
+ * junction table. This prevents duplicate GPS data when multiple sessions are active.
+ * 
+ * Implements Requirements 2.1, 2.2, 2.6 for shared location tracking.
  */
 @Entity(
     tableName = "location_points",
-    foreignKeys = [
-        ForeignKey(
-            entity = ActivitySessionEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["sessionId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index(value = ["sessionId"])] // Index for efficient session-based queries
+    indices = [Index(value = ["timestamp"])] // Index for efficient time-based queries
 )
 data class LocationPointEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    
-    val sessionId: Long, // Foreign key to ActivitySessionEntity
+
     val latitude: Double, // Latitude in degrees
     val longitude: Double, // Longitude in degrees
     val altitude: Double?, // Altitude in meters, nullable if unavailable

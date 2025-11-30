@@ -69,4 +69,26 @@ interface ActivitySessionDao {
      */
     @Query("DELETE FROM activity_sessions")
     suspend fun deleteAllSessions()
+    
+    /**
+     * Get all currently active sessions (where endTime is null).
+     */
+    @Query("SELECT * FROM activity_sessions WHERE endTime IS NULL ORDER BY startTime DESC")
+    fun getActiveSessions(): Flow<List<ActivitySessionEntity>>
+    
+    /**
+     * Get the active manually-started session (if any).
+     * Returns null if no manual session is currently active.
+     * Used to enforce at most 1 manual session active at a time (Requirement 1.7).
+     */
+    @Query("SELECT * FROM activity_sessions WHERE endTime IS NULL AND isManuallyStarted = 1 LIMIT 1")
+    suspend fun getActiveManualSession(): ActivitySessionEntity?
+    
+    /**
+     * Get the active automatically-detected session (if any).
+     * Returns null if no automatic session is currently active.
+     * Used to enforce at most 1 automatic session active at a time (Requirement 1.5).
+     */
+    @Query("SELECT * FROM activity_sessions WHERE endTime IS NULL AND isManuallyStarted = 0 LIMIT 1")
+    suspend fun getActiveAutomaticSession(): ActivitySessionEntity?
 }
