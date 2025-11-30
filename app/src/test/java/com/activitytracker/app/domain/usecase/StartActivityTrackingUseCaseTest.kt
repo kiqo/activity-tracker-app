@@ -1,5 +1,6 @@
 package com.activitytracker.app.domain.usecase
 
+import android.content.Context
 import com.activitytracker.app.domain.model.ActivityType
 import com.activitytracker.app.domain.repository.ActivityRepository
 import kotlinx.coroutines.test.runTest
@@ -21,12 +22,15 @@ class StartActivityTrackingUseCaseTest {
     @Mock
     private lateinit var activityRepository: ActivityRepository
 
+    @Mock
+    private lateinit var context: Context
+
     private lateinit var startActivityTrackingUseCase: StartActivityTrackingUseCase
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        startActivityTrackingUseCase = StartActivityTrackingUseCase(activityRepository)
+        startActivityTrackingUseCase = StartActivityTrackingUseCase(activityRepository, context)
     }
 
     @Test
