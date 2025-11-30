@@ -17,9 +17,10 @@ class GetActivityStatisticsUseCase @Inject constructor(
 ) {
     /**
      * Get activity statistics for a specific time interval.
-     * @param timeInterval The time interval (DAILY, WEEKLY, MONTHLY)
+     * @param timeInterval The current time interval (DAILY, WEEKLY, MONTHLY)
      * @return Flow of ActivityStatistics with aggregated data
      */
+    // TODO: Use extend to support also previous Days, Weeks, Months not just the current timeInterval
     operator fun invoke(timeInterval: TimeInterval): Flow<ActivityStatistics> {
         val (startTime, endTime) = getTimeRange(timeInterval)
         
@@ -75,7 +76,7 @@ class GetActivityStatisticsUseCase @Inject constructor(
     
     /**
      * Calculate start and end timestamps for a time interval.
-     * @return Pair of (startTime, endTime) in milliseconds
+     * @return Pair of (startTime, endTime) in milliseconds where startTime is the start of today, the week or the month.
      */
     private fun getTimeRange(timeInterval: TimeInterval): Pair<Long, Long> {
         val calendar = Calendar.getInstance()

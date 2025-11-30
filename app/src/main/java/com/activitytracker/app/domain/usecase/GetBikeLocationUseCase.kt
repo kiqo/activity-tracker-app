@@ -24,6 +24,7 @@ class GetBikeLocationUseCase @Inject constructor(
             ?: return null
         
         // Get the last location point from that session
+        // TODO: Use precise last location
         return locationRepository.getLastLocationForSession(lastCyclingSession.id)
     }
 }

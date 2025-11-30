@@ -8,7 +8,7 @@ import kotlin.math.*
 
 /**
  * Use case for calculating total distance of a route using the Haversine formula.
- * Only includes location points with accuracy < 50 meters.
+ * Only includes accurate location points.
  */
 class CalculateRouteDistanceUseCase @Inject constructor(
     private val locationRepository: LocationRepository
@@ -19,7 +19,6 @@ class CalculateRouteDistanceUseCase @Inject constructor(
      * @return Total distance in meters
      */
     suspend operator fun invoke(sessionId: Long): Double {
-        // Get accurate location points (accuracy < 50m)
         val points = locationRepository.getAccurateLocationPointsForSession(sessionId).first()
         
         if (points.size < 2) {

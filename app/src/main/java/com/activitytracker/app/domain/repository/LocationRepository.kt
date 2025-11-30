@@ -16,11 +16,11 @@ interface LocationRepository {
     
     /**
      * Get location points for a session with accuracy filter.
-     * Used for route rendering (only points with accuracy < 50m).
+     * Used for route rendering (only points with accuracy < 20m).
      */
     fun getAccurateLocationPointsForSession(
         sessionId: Long,
-        maxAccuracy: Float = 50f
+        maxAccuracy: Float = 20f
     ): Flow<List<LocationPoint>>
     
     /**

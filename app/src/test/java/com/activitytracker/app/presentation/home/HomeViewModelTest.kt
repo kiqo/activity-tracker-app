@@ -26,6 +26,7 @@ class HomeViewModelTest {
     private lateinit var startActivityTrackingUseCase: StartActivityTrackingUseCase
     private lateinit var stopActivityTrackingUseCase: StopActivityTrackingUseCase
     private lateinit var getActivityStatisticsUseCase: GetActivityStatisticsUseCase
+    private lateinit var context: android.content.Context
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -34,6 +35,7 @@ class HomeViewModelTest {
         startActivityTrackingUseCase = mock()
         stopActivityTrackingUseCase = mock()
         getActivityStatisticsUseCase = mock()
+        context = mock()
     }
 
     @After
@@ -62,7 +64,8 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             startActivityTrackingUseCase,
             stopActivityTrackingUseCase,
-            getActivityStatisticsUseCase
+            getActivityStatisticsUseCase,
+            context
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -98,7 +101,8 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             startActivityTrackingUseCase,
             stopActivityTrackingUseCase,
-            getActivityStatisticsUseCase
+            getActivityStatisticsUseCase,
+            context
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -147,7 +151,8 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             startActivityTrackingUseCase,
             stopActivityTrackingUseCase,
-            getActivityStatisticsUseCase
+            getActivityStatisticsUseCase,
+            context
         )
         testDispatcher.scheduler.advanceUntilIdle()
         
@@ -187,7 +192,8 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             startActivityTrackingUseCase,
             stopActivityTrackingUseCase,
-            getActivityStatisticsUseCase
+            getActivityStatisticsUseCase,
+            context,
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -223,7 +229,8 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             startActivityTrackingUseCase,
             stopActivityTrackingUseCase,
-            getActivityStatisticsUseCase
+            getActivityStatisticsUseCase,
+            context
         )
         testDispatcher.scheduler.advanceUntilIdle()
         
@@ -248,7 +255,8 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             startActivityTrackingUseCase,
             stopActivityTrackingUseCase,
-            getActivityStatisticsUseCase
+            getActivityStatisticsUseCase,
+            context
         )
         testDispatcher.scheduler.advanceUntilIdle()
 

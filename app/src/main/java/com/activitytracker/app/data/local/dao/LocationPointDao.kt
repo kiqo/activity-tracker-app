@@ -18,11 +18,11 @@ interface LocationPointDao {
     fun getLocationPointsForSession(sessionId: Long): Flow<List<LocationPointEntity>>
     
     /**
-     * Get location points for a session with accuracy filter.
-     * Used for route rendering (only points with accuracy < 50m).
+     * Get location points for a session with accuracy filter ordered by timestamp.
+     * Used for route rendering (only points with accuracy < 30m).
      */
     @Query("SELECT * FROM location_points WHERE sessionId = :sessionId AND accuracy < :maxAccuracy ORDER BY timestamp ASC")
-    fun getAccurateLocationPointsForSession(sessionId: Long, maxAccuracy: Float = 50f): Flow<List<LocationPointEntity>>
+    fun getAccurateLocationPointsForSession(sessionId: Long, maxAccuracy: Float = 30f): Flow<List<LocationPointEntity>>
     
     /**
      * Get the last location point for a specific session.

@@ -14,7 +14,6 @@ import javax.inject.Inject
  */
 class StopActivityTrackingUseCase @Inject constructor(
     private val activityRepository: ActivityRepository,
-    private val locationRepository: LocationRepository,
     private val calculateRouteDistanceUseCase: CalculateRouteDistanceUseCase,
     private val estimateStepCountUseCase: EstimateStepCountUseCase,
     @ApplicationContext private val context: Context
