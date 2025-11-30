@@ -53,8 +53,16 @@ class GetActivityStatisticsUseCase @Inject constructor(
                         totalSteps += session.stepCount
                         runningCount++
                     }
+                    ActivityType.ON_FOOT -> {
+                        walkingDistanceMeters += session.totalDistance
+                        totalSteps += session.stepCount
+                        walkingCount++
+                    }
                     ActivityType.IN_VEHICLE -> {
                         vehicleCount++
+                    }
+                    ActivityType.STILL, ActivityType.UNKNOWN, ActivityType.TILTING -> {
+                        // These are not tracked in statistics
                     }
                 }
             }

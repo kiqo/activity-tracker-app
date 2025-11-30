@@ -230,18 +230,26 @@ private fun EmptyState() {
 }
 
 private fun getActivityIcon(activityType: ActivityType) = when (activityType) {
-    ActivityType.CYCLING -> Icons.Default.DirectionsBike
-    ActivityType.RUNNING -> Icons.Default.DirectionsRun
-    ActivityType.WALKING -> Icons.Default.DirectionsWalk
     ActivityType.IN_VEHICLE -> Icons.Default.DirectionsCar
+    ActivityType.CYCLING -> Icons.Default.DirectionsBike
+    ActivityType.ON_FOOT -> Icons.Default.DirectionsWalk
+    ActivityType.STILL -> Icons.Default.Stop
+    ActivityType.UNKNOWN -> Icons.Default.QuestionMark
+    ActivityType.TILTING -> Icons.Default.PhoneAndroid
+    ActivityType.WALKING -> Icons.Default.DirectionsWalk
+    ActivityType.RUNNING -> Icons.Default.DirectionsRun
 }
 
 @Composable
 private fun getActivityColor(activityType: ActivityType) = when (activityType) {
-    ActivityType.CYCLING -> MaterialTheme.colorScheme.primary
-    ActivityType.RUNNING -> MaterialTheme.colorScheme.tertiary
-    ActivityType.WALKING -> MaterialTheme.colorScheme.secondary
     ActivityType.IN_VEHICLE -> MaterialTheme.colorScheme.error
+    ActivityType.CYCLING -> MaterialTheme.colorScheme.primary
+    ActivityType.ON_FOOT -> MaterialTheme.colorScheme.secondary
+    ActivityType.STILL -> MaterialTheme.colorScheme.surfaceVariant
+    ActivityType.UNKNOWN -> MaterialTheme.colorScheme.outline
+    ActivityType.TILTING -> MaterialTheme.colorScheme.tertiary
+    ActivityType.WALKING -> MaterialTheme.colorScheme.secondary
+    ActivityType.RUNNING -> MaterialTheme.colorScheme.tertiary
 }
 
 private fun formatDate(timestamp: Long): String {

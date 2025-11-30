@@ -295,18 +295,26 @@ private fun StatRow(
 }
 
 private fun getActivityIcon(activityType: ActivityType) = when (activityType) {
-    ActivityType.CYCLING -> Icons.Default.DirectionsBike
-    ActivityType.RUNNING -> Icons.Default.DirectionsRun
-    ActivityType.WALKING -> Icons.Default.DirectionsWalk
     ActivityType.IN_VEHICLE -> Icons.Default.DirectionsCar
+    ActivityType.CYCLING -> Icons.Default.DirectionsBike
+    ActivityType.ON_FOOT -> Icons.Default.DirectionsWalk
+    ActivityType.STILL -> Icons.Default.Stop
+    ActivityType.UNKNOWN -> Icons.Default.QuestionMark
+    ActivityType.TILTING -> Icons.Default.PhoneAndroid
+    ActivityType.WALKING -> Icons.Default.DirectionsWalk
+    ActivityType.RUNNING -> Icons.Default.DirectionsRun
 }
 
 @Composable
 private fun getActivityColor(activityType: ActivityType) = when (activityType) {
-    ActivityType.CYCLING -> androidx.compose.ui.graphics.Color(0xFF2196F3) // Blue
-    ActivityType.RUNNING -> androidx.compose.ui.graphics.Color(0xFF4CAF50) // Green
-    ActivityType.WALKING -> androidx.compose.ui.graphics.Color(0xFFFF9800) // Orange
     ActivityType.IN_VEHICLE -> androidx.compose.ui.graphics.Color(0xFFF44336) // Red
+    ActivityType.CYCLING -> androidx.compose.ui.graphics.Color(0xFF2196F3) // Blue
+    ActivityType.ON_FOOT -> androidx.compose.ui.graphics.Color(0xFFFF9800) // Orange
+    ActivityType.STILL -> androidx.compose.ui.graphics.Color(0xFF9E9E9E) // Gray
+    ActivityType.UNKNOWN -> androidx.compose.ui.graphics.Color(0xFF607D8B) // Blue Gray
+    ActivityType.TILTING -> androidx.compose.ui.graphics.Color(0xFF9C27B0) // Purple
+    ActivityType.WALKING -> androidx.compose.ui.graphics.Color(0xFFFF9800) // Orange
+    ActivityType.RUNNING -> androidx.compose.ui.graphics.Color(0xFF4CAF50) // Green
 }
 
 private fun formatDate(timestamp: Long): String {

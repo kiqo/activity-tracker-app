@@ -316,10 +316,14 @@ class ActivityRecognitionService : Service() {
      */
     private fun mapToActivityType(activityType: Int): ActivityType? {
         return when (activityType) {
-            DetectedActivity.ON_BICYCLE -> ActivityType.CYCLING
-            DetectedActivity.RUNNING -> ActivityType.RUNNING
-            DetectedActivity.WALKING -> ActivityType.WALKING
             DetectedActivity.IN_VEHICLE -> ActivityType.IN_VEHICLE
+            DetectedActivity.ON_BICYCLE -> ActivityType.CYCLING
+            DetectedActivity.ON_FOOT -> ActivityType.ON_FOOT
+            DetectedActivity.STILL -> ActivityType.STILL
+            DetectedActivity.UNKNOWN -> ActivityType.UNKNOWN
+            DetectedActivity.TILTING -> ActivityType.TILTING
+            DetectedActivity.WALKING -> ActivityType.WALKING
+            DetectedActivity.RUNNING -> ActivityType.RUNNING
             else -> null
         }
     }

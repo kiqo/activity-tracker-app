@@ -48,10 +48,14 @@ object MapUtils {
      */
     fun getColorForActivityType(activityType: ActivityType): Color {
         return when (activityType) {
-            ActivityType.CYCLING -> Color(0xFF2196F3) // Blue
-            ActivityType.RUNNING -> Color(0xFF4CAF50) // Green
-            ActivityType.WALKING -> Color(0xFFFF9800) // Orange
             ActivityType.IN_VEHICLE -> Color(0xFFF44336) // Red
+            ActivityType.CYCLING -> Color(0xFF2196F3) // Blue
+            ActivityType.ON_FOOT -> Color(0xFFFF9800) // Orange
+            ActivityType.STILL -> Color(0xFF9E9E9E) // Gray
+            ActivityType.UNKNOWN -> Color(0xFF607D8B) // Blue Gray
+            ActivityType.TILTING -> Color(0xFF9C27B0) // Purple
+            ActivityType.WALKING -> Color(0xFFFF9800) // Orange
+            ActivityType.RUNNING -> Color(0xFF4CAF50) // Green
         }
     }
     

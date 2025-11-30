@@ -210,19 +210,29 @@ fun ManualTrackingCard(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = when (currentActivityType) {
-                                    ActivityType.WALKING -> Icons.Default.DirectionsWalk
+                                    ActivityType.IN_VEHICLE -> Icons.Default.DirectionsCar
                                     ActivityType.CYCLING -> Icons.Default.DirectionsBike
+                                    ActivityType.ON_FOOT -> Icons.Default.DirectionsWalk
+                                    ActivityType.STILL -> Icons.Default.Stop
+                                    ActivityType.UNKNOWN -> Icons.Default.QuestionMark
+                                    ActivityType.TILTING -> Icons.Default.PhoneAndroid
+                                    ActivityType.WALKING -> Icons.Default.DirectionsWalk
                                     ActivityType.RUNNING -> Icons.Default.DirectionsRun
-                                    else -> Icons.Default.DirectionsWalk
+                                    null -> Icons.Default.DirectionsWalk
                                 },
                                 contentDescription = null
                             )
                             Text(
                                 text = when (currentActivityType) {
-                                    ActivityType.WALKING -> "Walking"
+                                    ActivityType.IN_VEHICLE -> "Driving"
                                     ActivityType.CYCLING -> "Cycling"
+                                    ActivityType.ON_FOOT -> "On Foot"
+                                    ActivityType.STILL -> "Still"
+                                    ActivityType.UNKNOWN -> "Unknown"
+                                    ActivityType.TILTING -> "Tilting"
+                                    ActivityType.WALKING -> "Walking"
                                     ActivityType.RUNNING -> "Running"
-                                    else -> "Active"
+                                    null -> "Active"
                                 },
                                 fontSize = 12.sp
                             )

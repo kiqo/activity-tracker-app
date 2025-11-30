@@ -24,7 +24,8 @@ class EstimateStepCountUseCase @Inject constructor() {
         return when (activityType) {
             ActivityType.WALKING -> (distanceMeters / WALKING_STRIDE_LENGTH_METERS).toInt()
             ActivityType.RUNNING -> (distanceMeters / RUNNING_STRIDE_LENGTH_METERS).toInt()
-            else -> 0 // No steps for cycling or vehicle
+            ActivityType.ON_FOOT -> (distanceMeters / WALKING_STRIDE_LENGTH_METERS).toInt() // Use walking stride for generic foot activity
+            else -> 0 // No steps for cycling, vehicle, still, unknown, or tilting
         }
     }
 }
