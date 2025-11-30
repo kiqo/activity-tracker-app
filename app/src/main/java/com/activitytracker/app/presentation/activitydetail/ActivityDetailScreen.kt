@@ -210,7 +210,7 @@ private fun ActivityHeader(session: ActivitySession) {
             modifier = Modifier.size(48.dp),
             tint = getActivityColor(session.activityType)
         )
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = session.activityType.name.lowercase()
                     .replaceFirstChar { it.uppercase() },
@@ -220,6 +220,24 @@ private fun ActivityHeader(session: ActivitySession) {
                 text = formatDate(session.startTime),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        // Badge showing manual vs automatic
+        Surface(
+            color = if (session.isManuallyStarted) 
+                MaterialTheme.colorScheme.primaryContainer 
+            else 
+                MaterialTheme.colorScheme.secondaryContainer,
+            shape = MaterialTheme.shapes.small
+        ) {
+            Text(
+                text = if (session.isManuallyStarted) "Manual" else "Auto",
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (session.isManuallyStarted)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }

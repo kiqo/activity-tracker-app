@@ -20,16 +20,18 @@ class StartActivityTrackingUseCase @Inject constructor(
     /**
      * Start a new activity session and begin location tracking.
      * @param activityType The type of activity to track
+     * @param isManual True if manually started by user, false if auto-detected
      * @return The ID of the newly created session
      */
-    suspend operator fun invoke(activityType: ActivityType): Long {
+    suspend operator fun invoke(activityType: ActivityType, isManual: Boolean = true): Long {
         val session = ActivitySession(
             activityType = activityType,
             startTime = System.currentTimeMillis(),
             endTime = null,
             totalDistance = 0.0,
             averageSpeed = 0.0,
-            stepCount = 0
+            stepCount = 0,
+            isManuallyStarted = isManual
         )
         val sessionId = activityRepository.insertSession(session)
         

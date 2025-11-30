@@ -166,11 +166,34 @@ private fun ActivityListItem(
 
             // Activity details
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = session.activityType.name.lowercase()
-                        .replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = session.activityType.name.lowercase()
+                            .replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    // Small badge for manual/auto
+                    Surface(
+                        color = if (session.isManuallyStarted) 
+                            MaterialTheme.colorScheme.primaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.secondaryContainer,
+                        shape = MaterialTheme.shapes.extraSmall
+                    ) {
+                        Text(
+                            text = if (session.isManuallyStarted) "M" else "A",
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (session.isManuallyStarted)
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            else
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
                 Text(
                     text = formatDate(session.startTime),
                     style = MaterialTheme.typography.bodySmall,

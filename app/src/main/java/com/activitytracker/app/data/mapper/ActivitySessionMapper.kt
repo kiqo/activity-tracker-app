@@ -15,7 +15,8 @@ fun ActivitySessionEntity.toDomain(): ActivitySession {
         endTime = endTime,
         totalDistance = totalDistance,
         averageSpeed = averageSpeed,
-        stepCount = stepCount
+        stepCount = stepCount,
+        isManuallyStarted = isManuallyStarted
     )
 }
 
@@ -30,7 +31,8 @@ fun ActivitySession.toEntity(): ActivitySessionEntity {
         endTime = endTime,
         totalDistance = totalDistance,
         averageSpeed = averageSpeed,
-        stepCount = stepCount
+        stepCount = stepCount,
+        isManuallyStarted = isManuallyStarted
     )
 }
 

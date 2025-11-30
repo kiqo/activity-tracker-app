@@ -18,10 +18,11 @@ data class ActivitySessionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     
-    val activityType: String, // CYCLING, RUNNING, WALKING, IN_VEHICLE
+    val activityType: String, // CYCLING, RUNNING, WALKING, IN_VEHICLE, etc.
     val startTime: Long, // Unix timestamp in milliseconds
     val endTime: Long?, // Unix timestamp in milliseconds, null if session is active
     val totalDistance: Double = 0.0, // Total distance in meters
     val averageSpeed: Double = 0.0, // Average speed in meters per second
-    val stepCount: Int = 0 // Estimated step count for walking/running
+    val stepCount: Int = 0, // Estimated step count for walking/running
+    val isManuallyStarted: Boolean = false // True if started manually, false if auto-detected
 )

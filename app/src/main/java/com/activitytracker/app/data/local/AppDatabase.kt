@@ -11,6 +11,9 @@ import com.activitytracker.app.data.local.entity.LocationPointEntity
  * Room database for Activity Tracker App.
  * Stores activity sessions and location points locally on device.
  * 
+ * Database version 3:
+ * - Added isManuallyStarted field to ActivitySessionEntity
+ * 
  * Database version 2:
  * - ActivitySessionEntity: Stores activity session metadata with indexes on startTime and activityType
  * - LocationPointEntity: Stores GPS location points with foreign key to sessions and index on sessionId
@@ -20,7 +23,7 @@ import com.activitytracker.app.data.local.entity.LocationPointEntity
         ActivitySessionEntity::class,
         LocationPointEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

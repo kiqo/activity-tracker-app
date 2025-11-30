@@ -23,9 +23,11 @@ The Activity Tracker App is a native Android application that automatically dete
 #### Acceptance Criteria
 
 1. WHEN the Activity Tracker App is running in the background, THE Activity Tracker App SHALL continuously monitor for activity changes using the Activity Recognition API
-2. WHEN the Activity Recognition API detects a confidence level above 75 percent for cycling, running, walking, or vehicle activity, THE Activity Tracker App SHALL create a new Activity Session
-3. WHEN an Activity Session is active and the detected activity type changes with confidence above 75 percent, THE Activity Tracker App SHALL end the current Activity Session and create a new Activity Session for the new activity type
+2. WHEN the Activity Recognition API detects a confidence level above 75 percent for cycling, running, walking, or vehicle activity, THE Activity Tracker App SHALL create a new automatically-detected Activity Session
+3. WHEN an automatically-detected Activity Session is active and the detected activity type changes with confidence above 75 percent, THE Activity Tracker App SHALL end the current Activity Session and create a new Activity Session for the new activity type
 4. WHEN an Activity Session has been inactive for more than 5 minutes, THE Activity Tracker App SHALL automatically end the Activity Session
+5. THE Activity Tracker App SHALL allow at most one automatically-detected Activity Session to be active at any time
+6. WHEN a new automatically-detected Activity Session is created, THE Activity Tracker App SHALL end any existing automatically-detected Activity Session before starting the new session
 
 ### Requirement 2
 

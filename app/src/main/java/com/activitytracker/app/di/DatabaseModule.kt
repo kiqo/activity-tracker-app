@@ -29,7 +29,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .fallbackToDestructiveMigration() // For development; use proper migrations in production
             .build()
     }
@@ -46,6 +46,18 @@ object DatabaseModule {
             // Add index on activityType for activity_sessions table
             database.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_activity_sessions_activityType ON activity_sessions(activityType)"
+            )
+        }
+    }
+    
+    /**
+     * Migration from version 2 to 3: Add isManuallyStarted field.
+     */
+    private val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {
+        override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+            // Add isManuallyStarted column with default value false (auto-detected)
+            database.execSQL(
+                "ALTER TABLE activity_sessions ADD COLUMN isManuallyStarted INTEGER NOT NULL DEFAULT 0"
             )
         }
     }

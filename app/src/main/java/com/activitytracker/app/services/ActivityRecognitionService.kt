@@ -232,8 +232,8 @@ class ActivityRecognitionService : Service() {
                         stopLocationTracking()
                     }
                     
-                    // Start new session
-                    val newSessionId = startActivityTrackingUseCase(detectedActivity)
+                    // Start new session (auto-detected, not manual)
+                    val newSessionId = startActivityTrackingUseCase(detectedActivity, isManual = false)
                     currentSessionId = newSessionId
                     currentActivityType = detectedActivity
                     
