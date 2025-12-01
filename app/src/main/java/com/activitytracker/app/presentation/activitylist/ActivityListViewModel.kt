@@ -11,6 +11,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
+ * Session type filter for manual/automatic sessions.
+ */
+enum class SessionTypeFilter {
+    ALL, MANUAL, AUTOMATIC
+}
+
+/**
  * ViewModel for ActivityListScreen.
  * Manages activity session list and filtering.
  */
@@ -21,6 +28,9 @@ class ActivityListViewModel @Inject constructor(
 
     private val _selectedFilter = MutableStateFlow<ActivityType?>(null)
     val selectedFilter: StateFlow<ActivityType?> = _selectedFilter.asStateFlow()
+    
+    private val _sessionTypeFilter = MutableStateFlow(SessionTypeFilter.ALL)
+    val sessionTypeFilter: StateFlow<SessionTypeFilter> = _sessionTypeFilter.asStateFlow()
 
     private val _uiState = MutableStateFlow<ActivityListUiState>(ActivityListUiState.Loading)
     val uiState: StateFlow<ActivityListUiState> = _uiState.asStateFlow()
@@ -30,20 +40,31 @@ class ActivityListViewModel @Inject constructor(
     }
 
     /**
-     * Load all activity sessions and apply filter.
+     * Load all activity sessions and apply filters.
      */
     private fun loadActivities() {
         viewModelScope.launch {
             try {
                 combine(
                     activityRepository.getAllSessions(),
-                    _selectedFilter
-                ) { sessions, filter ->
-                    if (filter == null) {
-                        sessions
-                    } else {
-                        sessions.filter { it.activityType == filter }
+                    _selectedFilter,
+                    _sessionTypeFilter
+                ) { sessions, activityFilter, sessionTypeFilter ->
+                    var filtered = sessions
+                    
+                    // Apply activity type filter
+                    if (activityFilter != null) {
+                        filtered = filtered.filter { it.activityType == activityFilter }
                     }
+                    
+                    // Apply session type filter (manual/automatic)
+                    filtered = when (sessionTypeFilter) {
+                        SessionTypeFilter.MANUAL -> filtered.filter { it.isManuallyStarted }
+                        SessionTypeFilter.AUTOMATIC -> filtered.filter { !it.isManuallyStarted }
+                        SessionTypeFilter.ALL -> filtered
+                    }
+                    
+                    filtered
                 }.collect { filteredSessions ->
                     _uiState.value = ActivityListUiState.Success(filteredSessions)
                 }
@@ -60,6 +81,13 @@ class ActivityListViewModel @Inject constructor(
      */
     fun setFilter(activityType: ActivityType?) {
         _selectedFilter.value = activityType
+    }
+    
+    /**
+     * Set session type filter (manual/automatic).
+     */
+    fun setSessionTypeFilter(filter: SessionTypeFilter) {
+        _sessionTypeFilter.value = filter
     }
 }
 

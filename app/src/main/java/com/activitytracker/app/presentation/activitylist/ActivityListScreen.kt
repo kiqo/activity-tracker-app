@@ -29,6 +29,7 @@ fun ActivityListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
+    val sessionTypeFilter by viewModel.sessionTypeFilter.collectAsState()
 
     Scaffold(
         topBar = {
@@ -47,7 +48,13 @@ fun ActivityListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Filter chips
+            // Session type filter (Manual/Automatic)
+            SessionTypeFilterChips(
+                selectedFilter = sessionTypeFilter,
+                onFilterSelected = { viewModel.setSessionTypeFilter(it) }
+            )
+            
+            // Activity type filter chips
             FilterChips(
                 selectedFilter = selectedFilter,
                 onFilterSelected = { viewModel.setFilter(it) }
@@ -98,6 +105,38 @@ fun ActivityListScreen(
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SessionTypeFilterChips(
+    selectedFilter: SessionTypeFilter,
+    onFilterSelected: (SessionTypeFilter) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(
+            selected = selectedFilter == SessionTypeFilter.ALL,
+            onClick = { onFilterSelected(SessionTypeFilter.ALL) },
+            label = { Text("All Sessions") }
+        )
+        FilterChip(
+            selected = selectedFilter == SessionTypeFilter.MANUAL,
+            onClick = { onFilterSelected(SessionTypeFilter.MANUAL) },
+            label = { Text("Manual") },
+            leadingIcon = { Icon(Icons.Default.TouchApp, null, Modifier.size(18.dp)) }
+        )
+        FilterChip(
+            selected = selectedFilter == SessionTypeFilter.AUTOMATIC,
+            onClick = { onFilterSelected(SessionTypeFilter.AUTOMATIC) },
+            label = { Text("Automatic") },
+            leadingIcon = { Icon(Icons.Default.AutoMode, null, Modifier.size(18.dp)) }
+        )
     }
 }
 

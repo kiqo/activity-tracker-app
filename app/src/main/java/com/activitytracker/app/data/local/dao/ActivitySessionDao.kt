@@ -91,4 +91,11 @@ interface ActivitySessionDao {
      */
     @Query("SELECT * FROM activity_sessions WHERE endTime IS NULL AND isManuallyStarted = 0 LIMIT 1")
     suspend fun getActiveAutomaticSession(): ActivitySessionEntity?
+    
+    /**
+     * Get all currently active sessions synchronously (where endTime is null).
+     * Used by LocationRepository to link location points to all active sessions.
+     */
+    @Query("SELECT * FROM activity_sessions WHERE endTime IS NULL ORDER BY startTime DESC")
+    suspend fun getActiveSessionsSync(): List<ActivitySessionEntity>
 }

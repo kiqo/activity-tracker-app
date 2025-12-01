@@ -11,6 +11,7 @@ import javax.inject.Inject
 
 /**
  * Use case for stopping an activity tracking session and calculating final statistics.
+ * Handles shared location tracking: only stops LocationTrackingService when ALL sessions have ended.
  */
 class StopActivityTrackingUseCase @Inject constructor(
     private val activityRepository: ActivityRepository,
@@ -19,19 +20,15 @@ class StopActivityTrackingUseCase @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     /**
-     * Stop an active session, stop location tracking, and update with final statistics.
+     * Stop an active session and update with final statistics.
+     * Only stops LocationTrackingService if no other sessions are active.
+     * 
      * @param sessionId The ID of the session to stop
      */
     suspend operator fun invoke(sessionId: Long) {
-        // Stop LocationTrackingService first
-        val intent = Intent(context, LocationTrackingService::class.java).apply {
-            action = LocationTrackingService.ACTION_STOP_TRACKING
-        }
-        context.startService(intent)
-        
         val session = activityRepository.getSessionById(sessionId).first() ?: return
         
-        // Calculate total distance from location points
+        // Calculate total distance from location points linked to this session
         val totalDistance = calculateRouteDistanceUseCase(sessionId)
         
         // Calculate duration in seconds
@@ -57,5 +54,23 @@ class StopActivityTrackingUseCase @Inject constructor(
         )
         
         activityRepository.updateSession(updatedSession)
+        
+        // Check if there are other active sessions
+        val manualSession = activityRepository.getActiveManualSession()
+        val automaticSession = activityRepository.getActiveAutomaticSession()
+        
+        val hasOtherActiveSessions = (manualSession != null && manualSession.id != sessionId) ||
+                                     (automaticSession != null && automaticSession.id != sessionId)
+        
+        // Only stop LocationTrackingService if no other sessions are active
+        if (!hasOtherActiveSessions) {
+            android.util.Log.d("StopActivityTracking", "No other active sessions, stopping LocationTrackingService")
+            val intent = Intent(context, LocationTrackingService::class.java).apply {
+                action = LocationTrackingService.ACTION_STOP_TRACKING
+            }
+            context.startService(intent)
+        } else {
+            android.util.Log.d("StopActivityTracking", "Other sessions still active, keeping LocationTrackingService running")
+        }
     }
 }

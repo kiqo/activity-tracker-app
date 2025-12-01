@@ -6,13 +6,12 @@ import androidx.room.Index
 
 /**
  * Junction table entity for many-to-many relationship between sessions and location points.
+ * Allows a single location point to be shared across multiple active sessions.
  * 
- * This design allows:
- * - Each location point to be stored ONCE (no duplicate GPS data)
- * - Each location point to be linked to multiple sessions
- * - When both manual and automatic sessions are active, location points are shared
- * 
- * Implements Requirements 2.1, 2.2, 2.6 for shared location tracking.
+ * This design enables:
+ * - Single location point stored once (no duplication)
+ * - Location point linked to all active sessions (manual + automatic)
+ * - Cascade deletion when either session or location point is deleted
  */
 @Entity(
     tableName = "session_location_points",

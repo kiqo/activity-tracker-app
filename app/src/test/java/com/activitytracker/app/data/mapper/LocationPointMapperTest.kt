@@ -16,7 +16,6 @@ class LocationPointMapperTest {
         // Given
         val entity = LocationPointEntity(
             id = 1L,
-            sessionId = 10L,
             latitude = 37.7749,
             longitude = -122.4194,
             altitude = 50.0,
@@ -29,7 +28,7 @@ class LocationPointMapperTest {
 
         // Then
         assertEquals(1L, domain.id)
-        assertEquals(10L, domain.sessionId)
+        assertEquals(0L, domain.sessionId) // sessionId is placeholder (0) in domain model
         assertEquals(37.7749, domain.latitude, 0.0001)
         assertEquals(-122.4194, domain.longitude, 0.0001)
         assertEquals(50.0, domain.altitude)
@@ -42,7 +41,7 @@ class LocationPointMapperTest {
         // Given
         val domain = LocationPoint(
             id = 2L,
-            sessionId = 20L,
+            sessionId = 20L, // sessionId not stored in entity (uses junction table)
             latitude = 34.0522,
             longitude = -118.2437,
             altitude = 100.0,
@@ -55,7 +54,6 @@ class LocationPointMapperTest {
 
         // Then
         assertEquals(2L, entity.id)
-        assertEquals(20L, entity.sessionId)
         assertEquals(34.0522, entity.latitude, 0.0001)
         assertEquals(-118.2437, entity.longitude, 0.0001)
         assertEquals(100.0, entity.altitude)
@@ -68,7 +66,6 @@ class LocationPointMapperTest {
         // Given - location without altitude
         val entity = LocationPointEntity(
             id = 1L,
-            sessionId = 10L,
             latitude = 37.7749,
             longitude = -122.4194,
             altitude = null,
@@ -87,9 +84,9 @@ class LocationPointMapperTest {
     fun `list of entities to domain converts all items`() {
         // Given
         val entities = listOf(
-            LocationPointEntity(1L, 10L, 37.7749, -122.4194, 50.0, 10f, 1000L),
-            LocationPointEntity(2L, 10L, 37.7849, -122.4194, 51.0, 12f, 2000L),
-            LocationPointEntity(3L, 10L, 37.7949, -122.4194, 52.0, 11f, 3000L)
+            LocationPointEntity(1L, 37.7749, -122.4194, 50.0, 10f, 1000L),
+            LocationPointEntity(2L, 37.7849, -122.4194, 51.0, 12f, 2000L),
+            LocationPointEntity(3L, 37.7949, -122.4194, 52.0, 11f, 3000L)
         )
 
         // When
@@ -124,7 +121,7 @@ class LocationPointMapperTest {
         // Given
         val original = LocationPoint(
             id = 123L,
-            sessionId = 456L,
+            sessionId = 456L, // sessionId not stored in entity
             latitude = 40.7128,
             longitude = -74.0060,
             altitude = 10.5,
@@ -136,9 +133,9 @@ class LocationPointMapperTest {
         val entity = original.toEntity()
         val result = entity.toDomain()
 
-        // Then - all fields should match
+        // Then - all fields should match except sessionId (becomes 0 placeholder)
         assertEquals(original.id, result.id)
-        assertEquals(original.sessionId, result.sessionId)
+        assertEquals(0L, result.sessionId) // sessionId becomes placeholder
         assertEquals(original.latitude, result.latitude, 0.0001)
         assertEquals(original.longitude, result.longitude, 0.0001)
         assertEquals(original.altitude, result.altitude)

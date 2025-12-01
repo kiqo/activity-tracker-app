@@ -12,46 +12,49 @@ import com.activitytracker.app.data.local.entity.SessionLocationPointEntity
  */
 @Dao
 interface SessionLocationPointDao {
-
+    
     /**
      * Link a location point to a specific session.
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun linkLocationPointToSession(link: SessionLocationPointEntity)
-
+    
     /**
-     * Link a location point to multiple sessions at once.
+     * Link a location point to multiple sessions in a single transaction.
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun linkLocationPointToSessions(links: List<SessionLocationPointEntity>)
-
+    
     /**
-     * Get all session IDs linked to a specific location point.
+     * Get all session IDs that are linked to a specific location point.
      */
     @Query("SELECT sessionId FROM session_location_points WHERE locationPointId = :locationPointId")
     suspend fun getSessionIdsForLocationPoint(locationPointId: Long): List<Long>
-
+    
     /**
-     * Get all location point IDs linked to a specific session.
+     * Get count of sessions linked to a location point.
      */
-    @Query("SELECT locationPointId FROM session_location_points WHERE sessionId = :sessionId")
-    suspend fun getLocationPointIdsForSession(sessionId: Long): List<Long>
-
+    @Query("SELECT COUNT(*) FROM session_location_points WHERE locationPointId = :locationPointId")
+    suspend fun getSessionCountForLocationPoint(locationPointId: Long): Int
+    
     /**
      * Delete all links for a specific session.
+     * Note: This is handled automatically by CASCADE delete, but provided for explicit control.
      */
     @Query("DELETE FROM session_location_points WHERE sessionId = :sessionId")
     suspend fun deleteLinksForSession(sessionId: Long)
-
+    
     /**
      * Delete all links for a specific location point.
+     * Note: This is handled automatically by CASCADE delete, but provided for explicit control.
      */
     @Query("DELETE FROM session_location_points WHERE locationPointId = :locationPointId")
     suspend fun deleteLinksForLocationPoint(locationPointId: Long)
-
+    
     /**
-     * Check if a location point is linked to any session.
+     * Delete all links.
+     * Useful for testing or clearing all data.
      */
-    @Query("SELECT COUNT(*) FROM session_location_points WHERE locationPointId = :locationPointId")
-    suspend fun getLinkCountForLocationPoint(locationPointId: Long): Int
+    @Query("DELETE FROM session_location_points")
+    suspend fun deleteAllLinks()
 }

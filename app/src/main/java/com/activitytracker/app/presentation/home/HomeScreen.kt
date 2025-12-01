@@ -68,18 +68,18 @@ fun HomeScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Automatic Detection Toggle
+                    // Automatic Detection Toggle and Status
                     AutoDetectionCard(
                         isEnabled = isAutoDetectionEnabled,
+                        automaticSession = state.automaticSession,
                         onToggle = { viewModel.toggleAutoDetection(it) }
                     )
                     
                     // Manual Tracking Controls
                     ManualTrackingCard(
-                        isTracking = state.isTracking,
-                        currentActivityType = state.currentActivityType,
+                        manualSession = state.manualSession,
                         onStartTracking = { activityType -> viewModel.startTracking(activityType) },
-                        onStopTracking = { viewModel.stopTracking() }
+                        onStopTracking = { viewModel.stopManualTracking() }
                     )
                     
                     // Today's Statistics
@@ -127,43 +127,91 @@ fun HomeScreen(
 @Composable
 fun AutoDetectionCard(
     isEnabled: Boolean,
+    automaticSession: com.activitytracker.app.domain.model.ActivitySession?,
     onToggle: (Boolean) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Automatic Detection",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = if (isEnabled) "Monitoring activities in background" else "Tap to enable automatic tracking",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Automatic Detection",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = if (isEnabled) "Monitoring activities in background" else "Tap to enable automatic tracking",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = isEnabled,
+                    onCheckedChange = onToggle
                 )
             }
-            Switch(
-                checked = isEnabled,
-                onCheckedChange = onToggle
-            )
+            
+            // Show automatic session status if active
+            if (automaticSession != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = when (automaticSession.activityType) {
+                            ActivityType.IN_VEHICLE -> Icons.Default.DirectionsCar
+                            ActivityType.CYCLING -> Icons.Default.DirectionsBike
+                            ActivityType.WALKING -> Icons.Default.DirectionsWalk
+                            ActivityType.RUNNING -> Icons.Default.DirectionsRun
+                            else -> Icons.Default.DirectionsWalk
+                        },
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Auto-detected: ${automaticSession.activityType.name}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Tracking in progress...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.FiberManualRecord,
+                        contentDescription = "Active",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 fun ManualTrackingCard(
-    isTracking: Boolean,
-    currentActivityType: ActivityType?,
+    manualSession: com.activitytracker.app.domain.model.ActivitySession?,
     onStartTracking: (ActivityType) -> Unit,
     onStopTracking: () -> Unit
 ) {
@@ -174,15 +222,15 @@ fun ManualTrackingCard(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = if (isTracking) "Currently Tracking: ${currentActivityType?.name ?: "Unknown"}" else "Start Manual Tracking",
-                style = MaterialTheme.typography.titleLarge,
+                text = "Manual Tracking",
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            if (isTracking) {
-                // Show active activity and stop button
+            if (manualSession != null) {
+                // Show active manual session and stop button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -193,13 +241,13 @@ fun ManualTrackingCard(
                         modifier = Modifier.weight(1f),
                         enabled = false,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = when (currentActivityType) {
+                            containerColor = when (manualSession.activityType) {
                                 ActivityType.WALKING -> MaterialTheme.colorScheme.tertiary
                                 ActivityType.CYCLING -> MaterialTheme.colorScheme.primary
                                 ActivityType.RUNNING -> MaterialTheme.colorScheme.secondary
                                 else -> MaterialTheme.colorScheme.surfaceVariant
                             },
-                            disabledContainerColor = when (currentActivityType) {
+                            disabledContainerColor = when (manualSession.activityType) {
                                 ActivityType.WALKING -> MaterialTheme.colorScheme.tertiary
                                 ActivityType.CYCLING -> MaterialTheme.colorScheme.primary
                                 ActivityType.RUNNING -> MaterialTheme.colorScheme.secondary
@@ -209,30 +257,22 @@ fun ManualTrackingCard(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                imageVector = when (currentActivityType) {
+                                imageVector = when (manualSession.activityType) {
                                     ActivityType.IN_VEHICLE -> Icons.Default.DirectionsCar
                                     ActivityType.CYCLING -> Icons.Default.DirectionsBike
-                                    ActivityType.ON_FOOT -> Icons.Default.DirectionsWalk
-                                    ActivityType.STILL -> Icons.Default.Stop
-                                    ActivityType.UNKNOWN -> Icons.Default.QuestionMark
-                                    ActivityType.TILTING -> Icons.Default.PhoneAndroid
                                     ActivityType.WALKING -> Icons.Default.DirectionsWalk
                                     ActivityType.RUNNING -> Icons.Default.DirectionsRun
-                                    null -> Icons.Default.DirectionsWalk
+                                    else -> Icons.Default.DirectionsWalk
                                 },
                                 contentDescription = null
                             )
                             Text(
-                                text = when (currentActivityType) {
+                                text = when (manualSession.activityType) {
                                     ActivityType.IN_VEHICLE -> "Driving"
                                     ActivityType.CYCLING -> "Cycling"
-                                    ActivityType.ON_FOOT -> "On Foot"
-                                    ActivityType.STILL -> "Still"
-                                    ActivityType.UNKNOWN -> "Unknown"
-                                    ActivityType.TILTING -> "Tilting"
                                     ActivityType.WALKING -> "Walking"
                                     ActivityType.RUNNING -> "Running"
-                                    null -> "Active"
+                                    else -> "Active"
                                 },
                                 fontSize = 12.sp
                             )

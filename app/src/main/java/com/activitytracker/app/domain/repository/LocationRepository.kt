@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Repository interface for location point operations.
  * Provides Flow-based reactive data access for location points.
+ * Supports shared location tracking where one location point can be linked to multiple sessions.
  */
 interface LocationRepository {
     
@@ -36,7 +37,8 @@ interface LocationRepository {
     suspend fun getFirstLocationForSession(sessionId: Long): LocationPoint?
     
     /**
-     * Insert a new location point.
+     * Insert a new location point and return its ID.
+     * The location point is stored once and can be linked to multiple sessions.
      */
     suspend fun insertLocationPoint(point: LocationPoint): Long
     
@@ -44,4 +46,16 @@ interface LocationRepository {
      * Insert multiple location points in a single transaction.
      */
     suspend fun insertLocationPoints(points: List<LocationPoint>)
+    
+    /**
+     * Link a location point to a specific session.
+     * Creates an entry in the junction table.
+     */
+    suspend fun linkLocationPointToSession(locationPointId: Long, sessionId: Long)
+    
+    /**
+     * Link a location point to all currently active sessions.
+     * Used by LocationTrackingService to share location points across manual and automatic sessions.
+     */
+    suspend fun linkLocationPointToAllActiveSessions(locationPointId: Long)
 }

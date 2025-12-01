@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
+import com.activitytracker.app.domain.model.ActivitySession
 import com.activitytracker.app.domain.model.ActivityType
+import com.activitytracker.app.domain.repository.ActivityRepository
 import com.activitytracker.app.domain.usecase.GetActivityStatisticsUseCase
 import com.activitytracker.app.domain.usecase.StartActivityTrackingUseCase
 import com.activitytracker.app.domain.usecase.StopActivityTrackingUseCase
@@ -25,12 +27,14 @@ import javax.inject.Inject
 /**
  * ViewModel for HomeScreen.
  * Manages tracking state and today's activity statistics.
+ * Supports dual-track session management (manual + automatic).
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val startActivityTrackingUseCase: StartActivityTrackingUseCase,
     private val stopActivityTrackingUseCase: StopActivityTrackingUseCase,
     private val getActivityStatisticsUseCase: GetActivityStatisticsUseCase,
+    private val activityRepository: ActivityRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -42,6 +46,27 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadTodayStatistics()
+        observeActiveSessions()
+    }
+    
+    /**
+     * Observe active sessions to update UI state.
+     */
+    private fun observeActiveSessions() {
+        viewModelScope.launch {
+            activityRepository.getActiveSessions().collect { activeSessions ->
+                val manualSession = activeSessions.firstOrNull { it.isManuallyStarted }
+                val automaticSession = activeSessions.firstOrNull { !it.isManuallyStarted }
+                
+                val currentState = _uiState.value
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        manualSession = manualSession,
+                        automaticSession = automaticSession
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -52,14 +77,12 @@ class HomeViewModel @Inject constructor(
             try {
                 getActivityStatisticsUseCase(TimeInterval.DAILY).collect { statistics ->
                     val currentState = _uiState.value
-                    val isTracking = if (currentState is HomeUiState.Success) currentState.isTracking else false
-                    val currentSessionId = if (currentState is HomeUiState.Success) currentState.currentSessionId else null
-                    val currentActivityType = if (currentState is HomeUiState.Success) currentState.currentActivityType else null
+                    val manualSession = if (currentState is HomeUiState.Success) currentState.manualSession else null
+                    val automaticSession = if (currentState is HomeUiState.Success) currentState.automaticSession else null
                     
                     _uiState.value = HomeUiState.Success(
-                        isTracking = isTracking,
-                        currentSessionId = currentSessionId,
-                        currentActivityType = currentActivityType,
+                        manualSession = manualSession,
+                        automaticSession = automaticSession,
                         todayWalkingKm = statistics.walkingDistanceKm,
                         todayCyclingKm = statistics.cyclingDistanceKm,
                         todayRunningKm = statistics.runningDistanceKm,
@@ -79,29 +102,18 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
-     * Start tracking a specific activity type.
-     * Stops any existing session before starting a new one.
+     * Start tracking a specific activity type manually.
+     * The use case will handle stopping any existing manual session.
      */
     fun startTracking(activityType: ActivityType) {
         viewModelScope.launch {
             try {
+                // Start new manual session (use case handles stopping existing manual session)
+                startActivityTrackingUseCase(activityType, isManual = true)
+                
                 val currentState = _uiState.value
-                
-                // Stop existing session if any
-                if (currentState is HomeUiState.Success && currentState.currentSessionId != null) {
-                    stopActivityTrackingUseCase(currentState.currentSessionId)
-                }
-                
-                // Start new session
-                val sessionId = startActivityTrackingUseCase(activityType)
-                
                 if (currentState is HomeUiState.Success) {
-                    _uiState.value = currentState.copy(
-                        isTracking = true,
-                        currentSessionId = sessionId,
-                        currentActivityType = activityType,
-                        error = null
-                    )
+                    _uiState.value = currentState.copy(error = null)
                 }
             } catch (e: Exception) {
                 val currentState = _uiState.value
@@ -118,20 +130,15 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
-     * Stop the current tracking session.
+     * Stop the manual tracking session.
      */
-    fun stopTracking() {
+    fun stopManualTracking() {
         viewModelScope.launch {
             try {
                 val currentState = _uiState.value
-                if (currentState is HomeUiState.Success && currentState.currentSessionId != null) {
-                    stopActivityTrackingUseCase(currentState.currentSessionId)
-                    _uiState.value = currentState.copy(
-                        isTracking = false,
-                        currentSessionId = null,
-                        currentActivityType = null,
-                        error = null
-                    )
+                if (currentState is HomeUiState.Success && currentState.manualSession != null) {
+                    stopActivityTrackingUseCase(currentState.manualSession.id)
+                    _uiState.value = currentState.copy(error = null)
                     // Reload statistics to show updated data
                     loadTodayStatistics()
                 }
@@ -183,14 +190,14 @@ class HomeViewModel @Inject constructor(
 
 /**
  * UI state for HomeScreen.
+ * Supports dual-track session management (manual + automatic).
  */
 sealed class HomeUiState {
     object Loading : HomeUiState()
     
     data class Success(
-        val isTracking: Boolean,
-        val currentSessionId: Long?,
-        val currentActivityType: ActivityType?,
+        val manualSession: ActivitySession?,
+        val automaticSession: ActivitySession?,
         val todayWalkingKm: Double,
         val todayCyclingKm: Double,
         val todayRunningKm: Double,

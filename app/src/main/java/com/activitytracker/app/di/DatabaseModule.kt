@@ -3,8 +3,10 @@ package com.activitytracker.app.di
 import android.content.Context
 import androidx.room.Room
 import com.activitytracker.app.data.local.AppDatabase
+import com.activitytracker.app.data.local.DatabaseMigrations
 import com.activitytracker.app.data.local.dao.ActivitySessionDao
 import com.activitytracker.app.data.local.dao.LocationPointDao
+import com.activitytracker.app.data.local.dao.SessionLocationPointDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,7 +31,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, DatabaseMigrations.MIGRATION_2_3)
             .fallbackToDestructiveMigration() // For development; use proper migrations in production
             .build()
     }
@@ -83,5 +85,11 @@ object DatabaseModule {
     @Singleton
     fun provideLocationPointDao(database: AppDatabase): LocationPointDao {
         return database.locationPointDao()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideSessionLocationPointDao(database: AppDatabase): SessionLocationPointDao {
+        return database.sessionLocationPointDao()
     }
 }

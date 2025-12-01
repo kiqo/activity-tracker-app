@@ -1,6 +1,9 @@
 package com.activitytracker.app.data.repository
 
+import com.activitytracker.app.data.local.dao.ActivitySessionDao
 import com.activitytracker.app.data.local.dao.LocationPointDao
+import com.activitytracker.app.data.local.dao.SessionLocationPointDao
+import com.activitytracker.app.data.local.entity.SessionLocationPointEntity
 import com.activitytracker.app.data.mapper.toDomain
 import com.activitytracker.app.data.mapper.toEntity
 import com.activitytracker.app.domain.model.LocationPoint
@@ -13,9 +16,12 @@ import javax.inject.Inject
 /**
  * Implementation of LocationRepository using Room database.
  * Handles data mapping between entities and domain models.
+ * Supports shared location tracking via junction table.
  */
 class LocationRepositoryImpl @Inject constructor(
-    private val locationPointDao: LocationPointDao
+    private val locationPointDao: LocationPointDao,
+    private val sessionLocationPointDao: SessionLocationPointDao,
+    private val activitySessionDao: ActivitySessionDao
 ) : LocationRepository {
     
     override fun getLocationPointsForSession(sessionId: Long): Flow<List<LocationPoint>> {
@@ -118,5 +124,45 @@ class LocationRepositoryImpl @Inject constructor(
         }
         
         throw lastException ?: Exception("Failed to insert location points after $maxRetries attempts")
+    }
+    
+    override suspend fun linkLocationPointToSession(locationPointId: Long, sessionId: Long) {
+        try {
+            val link = SessionLocationPointEntity(
+                sessionId = sessionId,
+                locationPointId = locationPointId
+            )
+            sessionLocationPointDao.linkLocationPointToSession(link)
+        } catch (e: Exception) {
+            android.util.Log.e("LocationRepository", "Failed to link location point to session", e)
+            throw e
+        }
+    }
+    
+    override suspend fun linkLocationPointToAllActiveSessions(locationPointId: Long) {
+        try {
+            // Get all active sessions (where endTime is null)
+            val activeSessions = activitySessionDao.getActiveSessionsSync()
+            
+            if (activeSessions.isEmpty()) {
+                android.util.Log.w("LocationRepository", "No active sessions to link location point to")
+                return
+            }
+            
+            // Create junction table entries for all active sessions
+            val links = activeSessions.map { session ->
+                SessionLocationPointEntity(
+                    sessionId = session.id,
+                    locationPointId = locationPointId
+                )
+            }
+            
+            sessionLocationPointDao.linkLocationPointToSessions(links)
+            
+            android.util.Log.d("LocationRepository", "Linked location point $locationPointId to ${activeSessions.size} active sessions")
+        } catch (e: Exception) {
+            android.util.Log.e("LocationRepository", "Failed to link location point to active sessions", e)
+            throw e
+        }
     }
 }

@@ -267,34 +267,34 @@
     - _Requirements: All UI-related requirements_
 
 
-- [ ] 15. Implement dual-track session management (manual + automatic)
-  - [ ] 15.1 Update database schema for dual-track sessions
+- [x] 15. Implement dual-track session management (manual + automatic)
+  - [x] 15.1 Update database schema for dual-track sessions
     - Add `isManuallyStarted` field to ActivitySessionEntity if not present
     - Create database migration for existing data (default to `isManuallyStarted = false`)
     - Update ActivitySessionDao with queries for `getActiveManualSession()` and `getActiveAutomaticSession()`
     - _Requirements: 1.5, 1.6, 1.7, 1.8, 1.9_
 
-  - [ ] 15.2 Update ActivityRepository interface and implementation
+  - [x] 15.2 Update ActivityRepository interface and implementation
     - Add `getActiveManualSession()` method to return active manually-started session
     - Add `getActiveAutomaticSession()` method to return active automatically-detected session
     - Implement both methods in ActivityRepositoryImpl using Room queries
     - _Requirements: 1.5, 1.6, 1.7, 1.8, 1.9_
 
-  - [ ] 15.3 Update StartActivityTrackingUseCase for dual-track logic
+  - [x] 15.3 Update StartActivityTrackingUseCase for dual-track logic
     - Query for existing active session of same type (manual/automatic) before creating new session
     - Stop existing session of same type if found (using StopActivityTrackingUseCase)
     - Allow both manual and automatic sessions to coexist simultaneously
     - Ensure at most 1 manual and at most 1 automatic session active at any time
     - _Requirements: 1.5, 1.6, 1.7, 1.8, 1.9_
 
-  - [ ] 15.4 Update ActivityRecognitionService for automatic session management
+  - [x] 15.4 Update ActivityRecognitionService for automatic session management
     - Use `getActiveAutomaticSession()` to check for existing automatic session
     - Only stop/replace automatic sessions, not manual sessions
     - Ensure automatic session transitions don't affect manual sessions
     - _Requirements: 1.5, 1.6_
 
-- [ ] 16. Implement shared location tracking with junction table
-  - [ ] 16.1 Update database schema for shared location points
+- [x] 16. Implement shared location tracking with junction table
+  - [x] 16.1 Update database schema for shared location points
     - Remove `sessionId` foreign key from LocationPointEntity
     - Create SessionLocationPointEntity junction table with composite primary key
     - Add foreign keys to both ActivitySessionEntity and LocationPointEntity with CASCADE delete
@@ -302,7 +302,7 @@
     - Create database migration to convert existing data to junction table format
     - _Requirements: 2.1, 2.2, 2.6_
 
-  - [ ] 16.2 Update LocationRepository for shared location tracking
+  - [x] 16.2 Update LocationRepository for shared location tracking
     - Update `insertLocationPoint()` to return the inserted location point ID
     - Add `linkLocationPointToSession(locationPointId, sessionId)` method
     - Add `linkLocationPointToAllActiveSessions(locationPointId)` method
@@ -310,33 +310,33 @@
     - Update `getLastLocationForSession()` to query via junction table
     - _Requirements: 2.1, 2.2, 2.6_
 
-  - [ ] 16.3 Update LocationTrackingService for shared tracking
+  - [x] 16.3 Update LocationTrackingService for shared tracking
     - Implement singleton pattern - only one instance regardless of active sessions
     - On location update: insert location point ONCE, then link to ALL active sessions
     - Only stop service when ALL sessions have ended (check both manual and automatic)
     - Handle case where one session ends while another continues
     - _Requirements: 2.1, 2.5, 2.6_
 
-  - [ ] 16.4 Update StopActivityTrackingUseCase for shared location handling
+  - [x] 16.4 Update StopActivityTrackingUseCase for shared location handling
     - Check if other sessions are still active before stopping LocationTrackingService
     - Only stop LocationTrackingService when the last active session ends
     - Calculate final statistics using location points linked to the specific session
     - _Requirements: 2.5, 2.6_
 
-- [ ] 17. Update UI to display dual-track session status
-  - [ ] 17.1 Update HomeScreen for dual-track display
+- [x] 17. Update UI to display dual-track session status
+  - [x] 17.1 Update HomeScreen for dual-track display
     - Show both active manual and automatic sessions if present
     - Display separate status indicators for each session type
     - Allow user to stop manual session independently of automatic session
     - _Requirements: 1.8, 1.9_
 
-  - [ ] 17.2 Update ActivityListScreen for session type filtering
+  - [x] 17.2 Update ActivityListScreen for session type filtering
     - Add filter option to show only manual or only automatic sessions
     - Display indicator showing whether session was manual or automatic
     - _Requirements: 1.7, 1.8_
 
 - [ ] 18. Write unit tests for dual-track and shared location features
-  - [ ] 18.1 Test dual-track session management
+  - [x] 18.1 Test dual-track session management
     - Test that at most 1 manual session can be active
     - Test that at most 1 automatic session can be active
     - Test that both manual and automatic sessions can coexist
@@ -345,7 +345,7 @@
     - Test that automatic session changes don't affect manual sessions
     - _Requirements: 1.5, 1.6, 1.7, 1.8, 1.9_
 
-  - [ ] 18.2 Test shared location tracking
+  - [x] 18.2 Test shared location tracking
     - Test that location points are stored only once (no duplicates)
     - Test that location points are linked to all active sessions
     - Test that LocationTrackingService continues when one session ends but another is active

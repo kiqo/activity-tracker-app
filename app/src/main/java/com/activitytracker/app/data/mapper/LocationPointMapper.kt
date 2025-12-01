@@ -5,11 +5,13 @@ import com.activitytracker.app.domain.model.LocationPoint
 
 /**
  * Convert LocationPointEntity to domain model LocationPoint.
+ * Note: sessionId is not stored in entity anymore (uses junction table).
+ * The sessionId in domain model is set to 0 as a placeholder.
  */
 fun LocationPointEntity.toDomain(): LocationPoint {
     return LocationPoint(
         id = id,
-        sessionId = sessionId,
+        sessionId = 0, // Not stored in entity; retrieved via junction table
         latitude = latitude,
         longitude = longitude,
         altitude = altitude,
@@ -20,11 +22,11 @@ fun LocationPointEntity.toDomain(): LocationPoint {
 
 /**
  * Convert domain model LocationPoint to LocationPointEntity.
+ * Note: sessionId is not stored in entity anymore (uses junction table).
  */
 fun LocationPoint.toEntity(): LocationPointEntity {
     return LocationPointEntity(
         id = id,
-        sessionId = sessionId,
         latitude = latitude,
         longitude = longitude,
         altitude = altitude,
