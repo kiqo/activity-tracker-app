@@ -22,7 +22,6 @@ fun LocationPointEntity.toDomain(): LocationPoint {
 
 /**
  * Convert domain model LocationPoint to LocationPointEntity.
- * Note: sessionId is not stored in entity anymore (uses junction table).
  */
 fun LocationPoint.toEntity(): LocationPointEntity {
     return LocationPointEntity(

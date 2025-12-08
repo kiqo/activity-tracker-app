@@ -51,6 +51,7 @@ class HomeViewModel @Inject constructor(
     
     /**
      * Observe active sessions to update UI state.
+     * Handles initial transition from Loading to Success.
      */
     private fun observeActiveSessions() {
         viewModelScope.launch {
@@ -59,11 +60,30 @@ class HomeViewModel @Inject constructor(
                 val automaticSession = activeSessions.firstOrNull { !it.isManuallyStarted }
                 
                 val currentState = _uiState.value
-                if (currentState is HomeUiState.Success) {
-                    _uiState.value = currentState.copy(
-                        manualSession = manualSession,
-                        automaticSession = automaticSession
-                    )
+                when (currentState) {
+                    is HomeUiState.Success -> {
+                        // Update sessions in existing Success state
+                        _uiState.value = currentState.copy(
+                            manualSession = manualSession,
+                            automaticSession = automaticSession
+                        )
+                    }
+                    is HomeUiState.Loading -> {
+                        // Initial load - transition to Success with sessions and default statistics
+                        // Statistics will be updated by loadTodayStatistics flow
+                        _uiState.value = HomeUiState.Success(
+                            manualSession = manualSession,
+                            automaticSession = automaticSession,
+                            todayWalkingKm = 0.0,
+                            todayCyclingKm = 0.0,
+                            todayRunningKm = 0.0,
+                            todaySteps = 0,
+                            error = null
+                        )
+                    }
+                    is HomeUiState.Error -> {
+                        // Stay in error state
+                    }
                 }
             }
         }
@@ -71,24 +91,24 @@ class HomeViewModel @Inject constructor(
 
     /**
      * Load today's activity statistics.
+     * Only updates statistics if state is already Success (to avoid premature transition from Loading).
      */
     fun loadTodayStatistics() {
         viewModelScope.launch {
             try {
                 getActivityStatisticsUseCase(TimeInterval.DAILY).collect { statistics ->
                     val currentState = _uiState.value
-                    val manualSession = if (currentState is HomeUiState.Success) currentState.manualSession else null
-                    val automaticSession = if (currentState is HomeUiState.Success) currentState.automaticSession else null
-                    
-                    _uiState.value = HomeUiState.Success(
-                        manualSession = manualSession,
-                        automaticSession = automaticSession,
-                        todayWalkingKm = statistics.walkingDistanceKm,
-                        todayCyclingKm = statistics.cyclingDistanceKm,
-                        todayRunningKm = statistics.runningDistanceKm,
-                        todaySteps = statistics.totalSteps,
-                        error = null
-                    )
+                    // Only update if already in Success state
+                    // observeActiveSessions will handle the initial transition from Loading to Success
+                    if (currentState is HomeUiState.Success) {
+                        _uiState.value = currentState.copy(
+                            todayWalkingKm = statistics.walkingDistanceKm,
+                            todayCyclingKm = statistics.cyclingDistanceKm,
+                            todayRunningKm = statistics.runningDistanceKm,
+                            todaySteps = statistics.totalSteps
+                        )
+                    }
+                    // If state is Loading or Error, do nothing - stay in that state
                 }
             } catch (e: Exception) {
                 val errorState = ErrorState(
@@ -138,8 +158,8 @@ class HomeViewModel @Inject constructor(
                 val currentState = _uiState.value
                 if (currentState is HomeUiState.Success && currentState.manualSession != null) {
                     stopActivityTrackingUseCase(currentState.manualSession.id)
-                    _uiState.value = currentState.copy(error = null)
-                    // Reload statistics to show updated data
+                    // observeActiveSessions will automatically update the UI state
+                    // Just reload statistics to show updated data
                     loadTodayStatistics()
                 }
             } catch (e: Exception) {
