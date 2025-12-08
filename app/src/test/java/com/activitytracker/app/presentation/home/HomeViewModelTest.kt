@@ -28,6 +28,7 @@ class HomeViewModelTest {
     private lateinit var getActivityStatisticsUseCase: GetActivityStatisticsUseCase
     private lateinit var activityRepository: com.activitytracker.app.domain.repository.ActivityRepository
     private lateinit var context: android.content.Context
+    private lateinit var logger: com.activitytracker.app.util.Logger
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -38,6 +39,7 @@ class HomeViewModelTest {
         getActivityStatisticsUseCase = mock()
         activityRepository = mock()
         context = mock()
+        logger = mock()
         
         // Mock active sessions to return empty by default
         whenever(activityRepository.getActiveSessions())
@@ -72,7 +74,8 @@ class HomeViewModelTest {
             stopActivityTrackingUseCase,
             getActivityStatisticsUseCase,
             activityRepository,
-            context
+            context,
+            logger
         )
         testDispatcher.scheduler.advanceUntilIdle()
         
@@ -117,7 +120,8 @@ class HomeViewModelTest {
             stopActivityTrackingUseCase,
             getActivityStatisticsUseCase,
             activityRepository,
-            context
+            context,
+            logger
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -182,7 +186,8 @@ class HomeViewModelTest {
             stopActivityTrackingUseCase,
             getActivityStatisticsUseCase,
             activityRepository,
-            context
+            context,
+            logger
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -218,7 +223,8 @@ class HomeViewModelTest {
             stopActivityTrackingUseCase,
             getActivityStatisticsUseCase,
             activityRepository,
-            context
+            context,
+            logger
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -255,7 +261,8 @@ class HomeViewModelTest {
             stopActivityTrackingUseCase,
             getActivityStatisticsUseCase,
             activityRepository,
-            context
+            context,
+            logger
         )
         testDispatcher.scheduler.advanceUntilIdle()
         
@@ -282,7 +289,8 @@ class HomeViewModelTest {
             stopActivityTrackingUseCase,
             getActivityStatisticsUseCase,
             activityRepository,
-            context
+            context,
+            logger
         )
         testDispatcher.scheduler.advanceUntilIdle()
 

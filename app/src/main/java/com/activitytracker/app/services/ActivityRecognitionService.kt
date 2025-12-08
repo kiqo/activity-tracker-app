@@ -247,6 +247,9 @@ class ActivityRecognitionService : Service() {
                     currentSessionId = newSessionId
                     currentActivityType = detectedActivity
                     
+                    // Start location tracking for this session
+                    startLocationTracking(newSessionId)
+                    
                     // Update notification
                     updateNotification("Tracking: ${detectedActivity.name}")
                 } catch (e: Exception) {
