@@ -145,7 +145,6 @@ class LocationRepositoryImpl @Inject constructor(
         try {
             // Get all active sessions (where endTime is null)
             val activeSessions = activitySessionDao.getActiveSessionsSync()
-            
             if (activeSessions.isEmpty()) {
                 logger.w("No active sessions to link location point to")
                 return
@@ -153,6 +152,7 @@ class LocationRepositoryImpl @Inject constructor(
             
             // Create junction table entries for all active sessions
             val links = activeSessions.map { session ->
+                logger.d("Linking location point id $locationPointId to $session")
                 SessionLocationPointEntity(
                     sessionId = session.id,
                     locationPointId = locationPointId
