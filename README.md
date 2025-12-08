@@ -163,7 +163,7 @@ All dependencies are managed in `app/build.gradle.kts`. Key dependencies include
 ./gradlew assembleRelease
 
 # Run tests
-./gradlew test
+./gradlew test -s --info
 
 # Run instrumented tests
 ./gradlew connectedAndroidTest
@@ -176,23 +176,23 @@ All dependencies are managed in `app/build.gradle.kts`. Key dependencies include
 # Altearnatively: Build and install via adb
 ./gradlew assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-
-# Errors and warnings only
-adb logcat *:E *:W
 ```
 
 ## Debug
 
 View App logs:
 ```
-# all app logs
-adb logcat | grep "com.activitytracker.app"
+# all app logs (colored)
+adb logcat -v color --pid=$(adb shell pidof -s com.activitytracker.app)
+
+# app logs (colored) errors and warnings only
+adb logcat -v color --pid=$(adb shell pidof -s com.activitytracker.app) "*:W"
 
 # Last 500 lines (not live)
-adb logcat -d | tail -500
+adb logcat -d --pid=$(adb shell pidof -s com.activitytracker.app) | tail -500
 
 # Only your app's errors
-adb logcat -d | grep "com.activitytracker.app" | grep "E/"
+adb logcat -d --pid=$(adb shell pidof -s com.activitytracker.app) | grep "E/"
 ```
 
 ## Testing
@@ -207,7 +207,7 @@ The project includes:
 Run tests with:
 
 ```bash
-./gradlew test [--continue]
+./gradlew test -s --info [--continue]
 ./gradlew connectedAndroidTest
 ```
 

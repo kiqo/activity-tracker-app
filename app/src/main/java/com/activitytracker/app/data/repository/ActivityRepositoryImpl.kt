@@ -5,6 +5,7 @@ import com.activitytracker.app.data.mapper.toDomain
 import com.activitytracker.app.data.mapper.toEntity
 import com.activitytracker.app.domain.model.ActivitySession
 import com.activitytracker.app.domain.repository.ActivityRepository
+import com.activitytracker.app.util.Logger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -15,7 +16,8 @@ import javax.inject.Inject
  * Handles data mapping between entities and domain models.
  */
 class ActivityRepositoryImpl @Inject constructor(
-    private val activitySessionDao: ActivitySessionDao
+    private val activitySessionDao: ActivitySessionDao,
+    private val logger: Logger
 ) : ActivityRepository {
     
     override fun getAllSessions(): Flow<List<ActivitySession>> {
@@ -25,13 +27,13 @@ class ActivityRepositoryImpl @Inject constructor(
                     try {
                         entity.toDomain()
                     } catch (e: Exception) {
-                        android.util.Log.e("ActivityRepository", "Failed to map entity to domain", e)
+                        logger.e(e, "Failed to map entity to domain")
                         null // Skip corrupted data
                     }
                 }
             }
             .catch { e ->
-                android.util.Log.e("ActivityRepository", "Database read error", e)
+                logger.e(e, "Database read error")
                 emit(emptyList()) // Return empty list on error
             }
     }
@@ -42,12 +44,12 @@ class ActivityRepositoryImpl @Inject constructor(
                 try {
                     entity?.toDomain()
                 } catch (e: Exception) {
-                    android.util.Log.e("ActivityRepository", "Failed to map entity to domain", e)
+                    logger.e(e, "Failed to map entity to domain")
                     null // Return null for corrupted data
                 }
             }
             .catch { e ->
-                android.util.Log.e("ActivityRepository", "Database read error", e)
+                logger.e(e, "Database read error")
                 emit(null)
             }
     }
@@ -62,13 +64,13 @@ class ActivityRepositoryImpl @Inject constructor(
                     try {
                         entity.toDomain()
                     } catch (e: Exception) {
-                        android.util.Log.e("ActivityRepository", "Failed to map entity to domain", e)
+                        logger.e(e, "Failed to map entity to domain")
                         null
                     }
                 }
             }
             .catch { e ->
-                android.util.Log.e("ActivityRepository", "Database read error", e)
+                logger.e(e, "Database read error")
                 emit(emptyList())
             }
     }
@@ -79,12 +81,12 @@ class ActivityRepositoryImpl @Inject constructor(
                 try {
                     entity?.toDomain()
                 } catch (e: Exception) {
-                    android.util.Log.e("ActivityRepository", "Failed to map entity to domain", e)
+                    logger.e(e, "Failed to map entity to domain")
                     null
                 }
             }
             .catch { e ->
-                android.util.Log.e("ActivityRepository", "Database read error", e)
+                logger.e(e, "Database read error")
                 emit(null)
             }
     }
@@ -96,13 +98,13 @@ class ActivityRepositoryImpl @Inject constructor(
                     try {
                         entity.toDomain()
                     } catch (e: Exception) {
-                        android.util.Log.e("ActivityRepository", "Failed to map entity to domain", e)
+                        logger.e(e, "Failed to map entity to domain")
                         null
                     }
                 }
             }
             .catch { e ->
-                android.util.Log.e("ActivityRepository", "Database read error", e)
+                logger.e(e, "Database read error")
                 emit(emptyList())
             }
     }
@@ -118,7 +120,7 @@ class ActivityRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 lastException = e
                 retryCount++
-                android.util.Log.e("ActivityRepository", "Failed to insert session (attempt $retryCount/$maxRetries)", e)
+                logger.e(e, "Failed to insert session (attempt $retryCount/$maxRetries)")
                 
                 if (retryCount < maxRetries) {
                     kotlinx.coroutines.delay(1000L * retryCount)
@@ -141,7 +143,7 @@ class ActivityRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 lastException = e
                 retryCount++
-                android.util.Log.e("ActivityRepository", "Failed to update session (attempt $retryCount/$maxRetries)", e)
+                logger.e(e, "Failed to update session (attempt $retryCount/$maxRetries)")
                 
                 if (retryCount < maxRetries) {
                     kotlinx.coroutines.delay(1000L * retryCount)
@@ -156,7 +158,7 @@ class ActivityRepositoryImpl @Inject constructor(
         try {
             activitySessionDao.deleteSession(id)
         } catch (e: Exception) {
-            android.util.Log.e("ActivityRepository", "Failed to delete session", e)
+            logger.e(e, "Failed to delete session")
             throw e
         }
     }
@@ -168,13 +170,13 @@ class ActivityRepositoryImpl @Inject constructor(
                     try {
                         entity.toDomain()
                     } catch (e: Exception) {
-                        android.util.Log.e("ActivityRepository", "Failed to map entity to domain", e)
+                        logger.e(e, "Failed to map entity to domain")
                         null
                     }
                 }
             }
             .catch { e ->
-                android.util.Log.e("ActivityRepository", "Database read error", e)
+                logger.e(e, "Database read error")
                 emit(emptyList())
             }
     }
@@ -183,7 +185,7 @@ class ActivityRepositoryImpl @Inject constructor(
         return try {
             activitySessionDao.getActiveManualSession()?.toDomain()
         } catch (e: Exception) {
-            android.util.Log.e("ActivityRepository", "Failed to get active manual session", e)
+            logger.e(e, "Failed to get active manual session")
             null
         }
     }
@@ -192,7 +194,7 @@ class ActivityRepositoryImpl @Inject constructor(
         return try {
             activitySessionDao.getActiveAutomaticSession()?.toDomain()
         } catch (e: Exception) {
-            android.util.Log.e("ActivityRepository", "Failed to get active automatic session", e)
+            logger.e(e, "Failed to get active automatic session")
             null
         }
     }

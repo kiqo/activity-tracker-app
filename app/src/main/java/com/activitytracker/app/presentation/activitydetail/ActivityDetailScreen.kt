@@ -73,6 +73,7 @@ fun ActivityDetailScreen(
                         RouteMap(
                             routePoints = state.routePoints,
                             activityType = state.session.activityType,
+                            logger = viewModel.logger,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(300.dp)
@@ -112,6 +113,7 @@ fun ActivityDetailScreen(
 private fun RouteMap(
     routePoints: List<LatLng>,
     activityType: ActivityType,
+    logger: com.activitytracker.app.util.Logger,
     modifier: Modifier = Modifier
 ) {
     // Optimize: Limit polyline points for very long routes (max 500 points)
@@ -147,8 +149,7 @@ private fun RouteMap(
     // Lifecycle management: Clean up map resources
     DisposableEffect(Unit) {
         onDispose {
-            // Map resources are automatically cleaned up by Compose
-            android.util.Log.d("RouteMap", "Map disposed, resources released")
+            logger.d("Map disposed, resources released")
         }
     }
 

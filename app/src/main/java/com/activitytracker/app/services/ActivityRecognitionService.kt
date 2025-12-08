@@ -15,6 +15,7 @@ import com.activitytracker.app.R
 import com.activitytracker.app.domain.model.ActivityType
 import com.activitytracker.app.domain.usecase.StartActivityTrackingUseCase
 import com.activitytracker.app.domain.usecase.StopActivityTrackingUseCase
+import com.activitytracker.app.util.Logger
 import com.google.android.gms.location.ActivityRecognition
 import com.google.android.gms.location.ActivityRecognitionClient
 import com.google.android.gms.location.ActivityTransition
@@ -40,6 +41,9 @@ class ActivityRecognitionService : Service() {
     
     @Inject
     lateinit var stopActivityTrackingUseCase: StopActivityTrackingUseCase
+    
+    @Inject
+    lateinit var logger: Logger
 
     private lateinit var activityRecognitionClient: ActivityRecognitionClient
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -132,7 +136,7 @@ class ActivityRecognitionService : Service() {
             val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this)
             
             if (resultCode != com.google.android.gms.common.ConnectionResult.SUCCESS) {
-                android.util.Log.e("ActivityRecognition", "Google Play Services not available: $resultCode")
+                logger.e("Google Play Services not available: $resultCode")
                 updateNotification("Error: Google Play Services unavailable")
                 return
             }
@@ -178,18 +182,18 @@ class ActivityRecognitionService : Service() {
             // Register for activity transition updates
             activityRecognitionClient.requestActivityTransitionUpdates(request, transitionPendingIntent!!)
                 .addOnSuccessListener {
-                    android.util.Log.d("ActivityRecognition", "Activity recognition registered successfully")
+                    logger.d("Activity recognition registered successfully")
                     updateNotification("Monitoring activities")
                 }
                 .addOnFailureListener { e ->
-                    android.util.Log.e("ActivityRecognition", "Failed to register activity recognition", e)
+                    logger.e(e, "Failed to register activity recognition")
                     updateNotification("Error: Failed to start monitoring")
                 }
         } catch (e: SecurityException) {
-            android.util.Log.e("ActivityRecognition", "Permission denied", e)
+            logger.e(e, "Permission denied")
             updateNotification("Error: Permission denied")
         } catch (e: Exception) {
-            android.util.Log.e("ActivityRecognition", "Failed to register activity recognition", e)
+            logger.e(e, "Failed to register activity recognition")
             updateNotification("Error: Failed to start monitoring")
         }
     }
@@ -201,10 +205,10 @@ class ActivityRecognitionService : Service() {
         transitionPendingIntent?.let { pendingIntent ->
             activityRecognitionClient.removeActivityTransitionUpdates(pendingIntent)
                 .addOnSuccessListener {
-                    android.util.Log.d("ActivityRecognition", "Activity recognition unregistered successfully")
+                    logger.d("Activity recognition unregistered successfully")
                 }
                 .addOnFailureListener { e ->
-                    android.util.Log.e("ActivityRecognition", "Failed to unregister activity recognition", e)
+                    logger.e(e, "Failed to unregister activity recognition")
                 }
         }
         transitionPendingIntent = null
@@ -220,7 +224,9 @@ class ActivityRecognitionService : Service() {
      * before creating new ones, ensuring at most 1 automatic session is active.
      */
     private fun handleActivityDetected(activityType: Int, confidence: Int) {
+        logger.d("Handling activity $activityType with confidence $confidence")
         if (confidence < CONFIDENCE_THRESHOLD) {
+            logger.d("Discarding activity due to too low confidence")
             return
         }
         
@@ -230,6 +236,7 @@ class ActivityRecognitionService : Service() {
         // If this is a different activity type, start new automatic session
         // The StartActivityTrackingUseCase will handle stopping any existing automatic session
         if (detectedActivity != currentActivityType) {
+            logger.d("Starting new activity due to different activity type")
             serviceScope.launch {
                 try {
                     // Start new automatic session (isManual = false)
@@ -243,7 +250,7 @@ class ActivityRecognitionService : Service() {
                     // Update notification
                     updateNotification("Tracking: ${detectedActivity.name}")
                 } catch (e: Exception) {
-                    android.util.Log.e("ActivityRecognition", "Failed to handle activity", e)
+                    logger.e(e, "Failed to handle activity")
                     updateNotification("Error: Failed to start tracking")
                     // Retry after a delay
                     kotlinx.coroutines.delay(5000)

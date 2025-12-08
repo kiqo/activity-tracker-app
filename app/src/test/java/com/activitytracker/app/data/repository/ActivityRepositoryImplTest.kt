@@ -4,6 +4,7 @@ import com.activitytracker.app.data.local.dao.ActivitySessionDao
 import com.activitytracker.app.data.local.entity.ActivitySessionEntity
 import com.activitytracker.app.domain.model.ActivitySession
 import com.activitytracker.app.domain.model.ActivityType
+import com.activitytracker.app.util.Logger
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -23,13 +24,16 @@ class ActivityRepositoryImplTest {
 
     @Mock
     private lateinit var activitySessionDao: ActivitySessionDao
+    
+    @Mock
+    private lateinit var logger: Logger
 
     private lateinit var repository: ActivityRepositoryImpl
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        repository = ActivityRepositoryImpl(activitySessionDao)
+        repository = ActivityRepositoryImpl(activitySessionDao, logger)
     }
 
     @Test

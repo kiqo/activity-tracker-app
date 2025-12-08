@@ -2,6 +2,7 @@ package com.activitytracker.app.presentation.bikelocation
 
 import com.activitytracker.app.domain.model.LocationPoint
 import com.activitytracker.app.domain.usecase.GetBikeLocationUseCase
+import com.activitytracker.app.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
@@ -18,13 +19,15 @@ class BikeLocationViewModelTest {
 
     private lateinit var viewModel: BikeLocationViewModel
     private lateinit var getBikeLocationUseCase: GetBikeLocationUseCase
+    private lateinit var logger: Logger
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getBikeLocationUseCase = mock()
-        viewModel = BikeLocationViewModel(getBikeLocationUseCase)
+        logger = mock()
+        viewModel = BikeLocationViewModel(getBikeLocationUseCase, logger)
     }
 
     @After

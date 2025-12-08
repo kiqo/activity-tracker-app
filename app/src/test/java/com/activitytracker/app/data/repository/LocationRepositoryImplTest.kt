@@ -7,6 +7,7 @@ import com.activitytracker.app.data.local.entity.ActivitySessionEntity
 import com.activitytracker.app.data.local.entity.LocationPointEntity
 import com.activitytracker.app.data.local.entity.SessionLocationPointEntity
 import com.activitytracker.app.domain.model.LocationPoint
+import com.activitytracker.app.util.Logger
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -38,6 +39,9 @@ class LocationRepositoryImplTest {
 
     @Mock
     private lateinit var activitySessionDao: ActivitySessionDao
+    
+    @Mock
+    private lateinit var logger: Logger
 
     private lateinit var repository: LocationRepositoryImpl
 
@@ -47,7 +51,8 @@ class LocationRepositoryImplTest {
         repository = LocationRepositoryImpl(
             locationPointDao,
             sessionLocationPointDao,
-            activitySessionDao
+            activitySessionDao,
+            logger
         )
     }
 

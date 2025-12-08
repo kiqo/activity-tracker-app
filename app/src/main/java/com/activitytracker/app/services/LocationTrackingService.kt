@@ -45,6 +45,9 @@ class LocationTrackingService : Service() {
     
     @Inject
     lateinit var locationRepository: LocationRepository
+    
+    @Inject
+    lateinit var logger: com.activitytracker.app.util.Logger
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var locationCallback: LocationCallback? = null
@@ -84,7 +87,7 @@ class LocationTrackingService : Service() {
                     startLocationTracking()
                     isServiceRunning = true
                 } else {
-                    android.util.Log.d("LocationTracking", "Service already tracking, ignoring duplicate start request")
+                    logger.d("Service already tracking, ignoring duplicate start request")
                 }
             }
             ACTION_STOP_TRACKING, ACTION_CHECK_ACTIVE_SESSIONS -> {
@@ -126,7 +129,7 @@ class LocationTrackingService : Service() {
                     stopSelf()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("LocationTracking", "Error checking active sessions", e)
+                logger.e(e, "Error checking active sessions")
                 // On error, stop the service to be safe
                 launch(Dispatchers.Main) {
                     stopLocationTracking()
@@ -149,7 +152,7 @@ class LocationTrackingService : Service() {
             val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this)
             
             if (resultCode != com.google.android.gms.common.ConnectionResult.SUCCESS) {
-                android.util.Log.e("LocationTracking", "Google Play Services not available: $resultCode")
+                logger.e("Google Play Services not available: $resultCode")
                 updateNotification("Error: Google Play Services unavailable")
                 stopSelf()
                 return
@@ -161,7 +164,7 @@ class LocationTrackingService : Service() {
             val isNetworkEnabled = locationManager?.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER) ?: false
             
             if (!isGpsEnabled && !isNetworkEnabled) {
-                android.util.Log.e("LocationTracking", "Location services are disabled")
+                logger.e("Location services are disabled")
                 updateNotification("Error: Location services disabled")
                 stopSelf()
                 return
@@ -173,7 +176,7 @@ class LocationTrackingService : Service() {
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                android.util.Log.e("LocationTracking", "Location permission not granted")
+                logger.e("Location permission not granted")
                 updateNotification("Error: Location permission denied")
                 stopSelf()
                 return
@@ -196,7 +199,7 @@ class LocationTrackingService : Service() {
                         handleLocationUpdate(location)
                     } ?: run {
                         // No location available - GPS signal lost
-                        android.util.Log.w("LocationTracking", "No location in result")
+                        logger.w("No location in result")
                         updateNotification("Waiting for GPS signal...")
                     }
                 }
@@ -208,10 +211,10 @@ class LocationTrackingService : Service() {
                 locationCallback!!,
                 Looper.getMainLooper()
             ).addOnSuccessListener {
-                android.util.Log.d("LocationTracking", "Location updates started successfully")
+                logger.d("Location updates started successfully")
                 updateNotification("Tracking location")
             }.addOnFailureListener { e ->
-                android.util.Log.e("LocationTracking", "Failed to start location updates", e)
+                logger.e(e, "Failed to start location updates")
                 updateNotification("Error: Failed to start location tracking")
                 // Retry after a delay
                 serviceScope.launch {
@@ -222,11 +225,11 @@ class LocationTrackingService : Service() {
                 }
             }
         } catch (e: SecurityException) {
-            android.util.Log.e("LocationTracking", "Security exception", e)
+            logger.e(e, "Security exception")
             updateNotification("Error: Permission denied")
             stopSelf()
         } catch (e: Exception) {
-            android.util.Log.e("LocationTracking", "Failed to start location tracking", e)
+            logger.e(e, "Failed to start location tracking")
             updateNotification("Error: Failed to start tracking")
             stopSelf()
         }
@@ -271,7 +274,7 @@ class LocationTrackingService : Service() {
             
             // If stationary state changed, restart location updates with new interval
             if (wasStationary != isStationary) {
-                android.util.Log.d("LocationTracking", "Stationary state changed: $isStationary")
+                logger.d("Stationary state changed: $isStationary")
                 restartLocationUpdates()
             }
         }
@@ -312,11 +315,11 @@ class LocationTrackingService : Service() {
                     break // Success, exit retry loop
                 } catch (e: Exception) {
                     retryCount++
-                    android.util.Log.e("LocationTracking", "Failed to save location (attempt $retryCount/$maxRetries)", e)
+                    logger.e(e, "Failed to save location (attempt $retryCount/$maxRetries)")
                     
                     if (retryCount >= maxRetries) {
                         // Failed after all retries
-                        android.util.Log.e("LocationTracking", "Failed to save location after $maxRetries attempts")
+                        logger.e("Failed to save location after $maxRetries attempts")
                         launch(Dispatchers.Main) {
                             updateNotification("Error: Failed to save location")
                         }

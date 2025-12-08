@@ -181,7 +181,7 @@ Once the project builds successfully:
 ./gradlew installDebug
 
 # Run unit tests
-./gradlew test
+./gradlew test -s --info
 
 # Run instrumented tests
 ./gradlew connectedAndroidTest

@@ -56,6 +56,7 @@ android {
     
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     
     composeOptions {
@@ -115,6 +116,9 @@ dependencies {
 
     // Permissions
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+    
+    // Logging
+    implementation("com.jakewharton.timber:timber:5.0.1")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

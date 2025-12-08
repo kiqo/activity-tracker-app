@@ -4,6 +4,7 @@ import android.content.Context
 import com.activitytracker.app.domain.model.ActivitySession
 import com.activitytracker.app.domain.model.ActivityType
 import com.activitytracker.app.domain.repository.ActivityRepository
+import com.activitytracker.app.util.Logger
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -30,6 +31,9 @@ class StopActivityTrackingUseCaseTest {
 
     @Mock
     private lateinit var estimateStepCountUseCase: EstimateStepCountUseCase
+    
+    @Mock
+    private lateinit var logger: Logger
 
     @Mock
     private lateinit var context: Context
@@ -43,6 +47,7 @@ class StopActivityTrackingUseCaseTest {
             activityRepository,
             calculateRouteDistanceUseCase,
             estimateStepCountUseCase,
+            logger,
             context
         )
     }

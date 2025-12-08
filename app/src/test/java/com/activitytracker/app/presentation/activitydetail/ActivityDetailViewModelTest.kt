@@ -6,6 +6,7 @@ import com.activitytracker.app.domain.model.ActivityType
 import com.activitytracker.app.domain.model.LocationPoint
 import com.activitytracker.app.domain.repository.ActivityRepository
 import com.activitytracker.app.domain.repository.LocationRepository
+import com.activitytracker.app.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -23,6 +24,7 @@ class ActivityDetailViewModelTest {
     private lateinit var viewModel: ActivityDetailViewModel
     private lateinit var activityRepository: ActivityRepository
     private lateinit var locationRepository: LocationRepository
+    private lateinit var logger: Logger
     private lateinit var navController: NavController
     private val testDispatcher = StandardTestDispatcher()
 
@@ -31,8 +33,9 @@ class ActivityDetailViewModelTest {
         Dispatchers.setMain(testDispatcher)
         activityRepository = mock()
         locationRepository = mock()
+        logger = mock()
         navController = mock()
-        viewModel = ActivityDetailViewModel(activityRepository, locationRepository)
+        viewModel = ActivityDetailViewModel(activityRepository, locationRepository, logger)
     }
 
     @After
