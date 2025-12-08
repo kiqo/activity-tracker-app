@@ -172,8 +172,10 @@ class LocationTrackingServiceInstrumentedTest {
         context.startService(checkIntent)
         delay(SERVICE_START_TIME)
 
-        // Then - service processes the action
-        // TODO implement
+        // Then - service processes the action and stops if no active sessions
+        // Since we haven't created any active sessions, service should stop
+        val isRunning = isServiceRunning(context, LocationTrackingService::class.java)
+        assertFalse(isRunning, "Service should stop when no active sessions exist")
     }
 
     // ========================================
@@ -240,7 +242,22 @@ class LocationTrackingServiceInstrumentedTest {
 
     @Test
     fun serviceHandlesNullIntent() = runBlocking {
-        // TODO implement
+        // Given - service is running
+        val startIntent = Intent(context, LocationTrackingService::class.java).apply {
+            action = LocationTrackingService.ACTION_START_TRACKING
+        }
+        context.startForegroundService(startIntent)
+        delay(SERVICE_START_TIME)
+        
+        // When - send null intent (simulated by sending intent without action)
+        val nullActionIntent = Intent(context, LocationTrackingService::class.java)
+        // Don't set any action - this simulates null intent handling
+        context.startService(nullActionIntent)
+        delay(1000)
+
+        // Then - service should handle gracefully and continue running
+        val isRunning = isServiceRunning(context, LocationTrackingService::class.java)
+        assertTrue(isRunning, "Service should handle null intent gracefully and continue running")
     }
 
     // ========================================
