@@ -20,8 +20,12 @@ object LoggingModule {
     @Provides
     @Singleton
     fun provideLogger(): Logger {
+        return provideLogger(BuildConfig.DEBUG)
+    }
+    
+    internal fun provideLogger(isDebug: Boolean): Logger {
         // Initialize Timber when Logger is first created
-        if (BuildConfig.DEBUG) {
+        if (isDebug) {
             Timber.plant(Timber.DebugTree())
         }
         return TimberLogger()

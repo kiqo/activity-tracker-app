@@ -163,7 +163,7 @@ All dependencies are managed in `app/build.gradle.kts`. Key dependencies include
 ./gradlew assembleRelease
 
 # Run tests
-./gradlew test
+./gradlew test -s --info
 
 # Run instrumented tests
 ./gradlew connectedAndroidTest
@@ -207,7 +207,7 @@ The project includes:
 Run tests with:
 
 ```bash
-./gradlew test [--continue]
+./gradlew test -s --info [--continue]
 ./gradlew connectedAndroidTest
 ```
 

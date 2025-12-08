@@ -231,12 +231,9 @@ adb logcat -c
 - Use backticks for natural language: `` `fetch user emits loading then success` ``
 
 ### Continuous Testing
-- Run unit tests before committing: `./gradlew test`
-- Get detailed test output with stack traces: `./gradlew test -s`
-- Get full stack traces for debugging: `./gradlew test -S` or `./gradlew test --full-stacktrace`
+- Run unit tests before committing: `./gradlew test -s --info`
+- Get full stack traces for debugging: `./gradlew test -s --info` or `./gradlew test --full-stacktrace`
 - Run tests with detailed logging: `./gradlew test --info`
-- Run specific test class: `./gradlew test --tests "com.company.app.ViewModelTest"`
-- Run specific test method: `./gradlew test --tests "com.company.app.ViewModelTest.fetchUser_whenNetworkError_emitsErrorState"`
 - Run instrumented tests regularly: `./gradlew connectedAndroidTest`
 - Continue running tests after failures: `./gradlew test --continue`
 - Integrate tests in CI/CD pipeline
