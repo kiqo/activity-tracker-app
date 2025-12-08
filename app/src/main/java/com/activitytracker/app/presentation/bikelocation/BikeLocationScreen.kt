@@ -61,6 +61,7 @@ fun BikeLocationScreen(
                     // Map showing bike location
                     BikeMap(
                         bikeLocation = state.bikeLocation,
+                        logger = viewModel.logger,
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
@@ -181,6 +182,7 @@ fun BikeLocationScreen(
 @Composable
 private fun BikeMap(
     bikeLocation: LatLng,
+    logger: com.activitytracker.app.util.Logger,
     modifier: Modifier = Modifier
 ) {
     val cameraPositionState = rememberCameraPositionState {
@@ -190,8 +192,7 @@ private fun BikeMap(
     // Lifecycle management: Clean up map resources
     DisposableEffect(Unit) {
         onDispose {
-            // Map resources are automatically cleaned up by Compose
-            android.util.Log.d("BikeMap", "Map disposed, resources released")
+            logger.d("Map disposed, resources released")
         }
     }
 

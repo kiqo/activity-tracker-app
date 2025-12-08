@@ -5,6 +5,7 @@ import android.content.Intent
 import com.activitytracker.app.domain.repository.ActivityRepository
 import com.activitytracker.app.domain.repository.LocationRepository
 import com.activitytracker.app.services.LocationTrackingService
+import com.activitytracker.app.util.Logger
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -17,6 +18,7 @@ class StopActivityTrackingUseCase @Inject constructor(
     private val activityRepository: ActivityRepository,
     private val calculateRouteDistanceUseCase: CalculateRouteDistanceUseCase,
     private val estimateStepCountUseCase: EstimateStepCountUseCase,
+    private val logger: Logger,
     @ApplicationContext private val context: Context
 ) {
     /**
@@ -64,13 +66,13 @@ class StopActivityTrackingUseCase @Inject constructor(
         
         // Only stop LocationTrackingService if no other sessions are active
         if (!hasOtherActiveSessions) {
-            android.util.Log.d("StopActivityTracking", "No other active sessions, stopping LocationTrackingService")
+            logger.d("No other active sessions, stopping LocationTrackingService")
             val intent = Intent(context, LocationTrackingService::class.java).apply {
                 action = LocationTrackingService.ACTION_STOP_TRACKING
             }
             context.startService(intent)
         } else {
-            android.util.Log.d("StopActivityTracking", "Other sessions still active, keeping LocationTrackingService running")
+            logger.d("Other sessions still active, keeping LocationTrackingService running")
         }
     }
 }

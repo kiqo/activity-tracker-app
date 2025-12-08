@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.activitytracker.app.util.Logger
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -11,6 +12,7 @@ class ActivityTrackerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Logger.initializeLogger(BuildConfig.DEBUG)
         createNotificationChannels()
     }
 

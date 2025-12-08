@@ -20,7 +20,8 @@ import kotlin.math.*
  */
 @HiltViewModel
 class BikeLocationViewModel @Inject constructor(
-    private val getBikeLocationUseCase: GetBikeLocationUseCase
+    private val getBikeLocationUseCase: GetBikeLocationUseCase,
+    val logger: com.activitytracker.app.util.Logger
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BikeLocationUiState>(BikeLocationUiState.Loading)

@@ -22,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ActivityDetailViewModel @Inject constructor(
     private val activityRepository: ActivityRepository,
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
+    val logger: com.activitytracker.app.util.Logger
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ActivityDetailUiState>(ActivityDetailUiState.Loading)

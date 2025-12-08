@@ -8,6 +8,7 @@ import com.activitytracker.app.data.mapper.toDomain
 import com.activitytracker.app.data.mapper.toEntity
 import com.activitytracker.app.domain.model.LocationPoint
 import com.activitytracker.app.domain.repository.LocationRepository
+import com.activitytracker.app.util.Logger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class LocationRepositoryImpl @Inject constructor(
     private val locationPointDao: LocationPointDao,
     private val sessionLocationPointDao: SessionLocationPointDao,
-    private val activitySessionDao: ActivitySessionDao
+    private val activitySessionDao: ActivitySessionDao,
+    private val logger: Logger
 ) : LocationRepository {
     
     override fun getLocationPointsForSession(sessionId: Long): Flow<List<LocationPoint>> {
@@ -31,13 +33,13 @@ class LocationRepositoryImpl @Inject constructor(
                     try {
                         entity.toDomain()
                     } catch (e: Exception) {
-                        android.util.Log.e("LocationRepository", "Failed to map location point", e)
+                        logger.e(e, "Failed to map location point")
                         null
                     }
                 }
             }
             .catch { e ->
-                android.util.Log.e("LocationRepository", "Database read error", e)
+                logger.e(e as? Exception ?: Exception(e), "Database read error")
                 emit(emptyList())
             }
     }
@@ -52,13 +54,13 @@ class LocationRepositoryImpl @Inject constructor(
                     try {
                         entity.toDomain()
                     } catch (e: Exception) {
-                        android.util.Log.e("LocationRepository", "Failed to map location point", e)
+                        logger.e(e, "Failed to map location point")
                         null
                     }
                 }
             }
             .catch { e ->
-                android.util.Log.e("LocationRepository", "Database read error", e)
+                logger.e(e as? Exception ?: Exception(e), "Database read error")
                 emit(emptyList())
             }
     }
@@ -67,7 +69,7 @@ class LocationRepositoryImpl @Inject constructor(
         return try {
             locationPointDao.getLastLocationForSession(sessionId)?.toDomain()
         } catch (e: Exception) {
-            android.util.Log.e("LocationRepository", "Failed to get last location", e)
+            logger.e(e, "Failed to get last location")
             null
         }
     }
@@ -76,7 +78,7 @@ class LocationRepositoryImpl @Inject constructor(
         return try {
             locationPointDao.getFirstLocationForSession(sessionId)?.toDomain()
         } catch (e: Exception) {
-            android.util.Log.e("LocationRepository", "Failed to get first location", e)
+            logger.e(e, "Failed to get first location")
             null
         }
     }
@@ -92,7 +94,7 @@ class LocationRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 lastException = e
                 retryCount++
-                android.util.Log.e("LocationRepository", "Failed to insert location point (attempt $retryCount/$maxRetries)", e)
+                logger.e(e, "Failed to insert location point (attempt $retryCount/$maxRetries)")
                 
                 if (retryCount < maxRetries) {
                     kotlinx.coroutines.delay(500L * retryCount)
@@ -115,7 +117,7 @@ class LocationRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 lastException = e
                 retryCount++
-                android.util.Log.e("LocationRepository", "Failed to insert location points (attempt $retryCount/$maxRetries)", e)
+                logger.e(e, "Failed to insert location points (attempt $retryCount/$maxRetries)")
                 
                 if (retryCount < maxRetries) {
                     kotlinx.coroutines.delay(500L * retryCount)
@@ -134,7 +136,7 @@ class LocationRepositoryImpl @Inject constructor(
             )
             sessionLocationPointDao.linkLocationPointToSession(link)
         } catch (e: Exception) {
-            android.util.Log.e("LocationRepository", "Failed to link location point to session", e)
+            logger.e(e, "Failed to link location point to session")
             throw e
         }
     }
@@ -145,7 +147,7 @@ class LocationRepositoryImpl @Inject constructor(
             val activeSessions = activitySessionDao.getActiveSessionsSync()
             
             if (activeSessions.isEmpty()) {
-                android.util.Log.w("LocationRepository", "No active sessions to link location point to")
+                logger.w("No active sessions to link location point to")
                 return
             }
             
@@ -159,9 +161,9 @@ class LocationRepositoryImpl @Inject constructor(
             
             sessionLocationPointDao.linkLocationPointToSessions(links)
             
-            android.util.Log.d("LocationRepository", "Linked location point $locationPointId to ${activeSessions.size} active sessions")
+            logger.d("Linked location point $locationPointId to ${activeSessions.size} active sessions")
         } catch (e: Exception) {
-            android.util.Log.e("LocationRepository", "Failed to link location point to active sessions", e)
+            logger.e(e, "Failed to link location point to active sessions")
             throw e
         }
     }
