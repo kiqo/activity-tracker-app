@@ -57,10 +57,9 @@ class LocationTrackingService : Service() {
 
     companion object {
         private const val NOTIFICATION_ID = 1002
-        private const val LOCATION_UPDATE_INTERVAL_MS = 10_000L // 10 seconds
-        private const val LOCATION_FASTEST_INTERVAL_MS = 5_000L // 5 seconds
-        private const val LOCATION_UPDATE_INTERVAL_STATIONARY_MS = 30_000L // 30 seconds when stationary
-        private const val MAX_WAIT_TIME_MS = 60_000L // 1 minute for batched updates
+        private const val LOCATION_UPDATE_INTERVAL_MS = 4_000L // 4 seconds
+        private const val LOCATION_MIN_UPDATE_INTERVAL_MS = 2_000L // 2 seconds
+        private const val LOCATION_MAX_UPDATE_INTERVAL_MS = 10_000L // 10 seconds for batched updates - seems to 15s even when 10s is specified
         private const val STATIONARY_DISTANCE_THRESHOLD = 20f // 20 meters
         const val ACCURACY_THRESHOLD_METERS = 50f
         
@@ -186,13 +185,13 @@ class LocationTrackingService : Service() {
             }
 
             // Create location request with battery optimizations
-            logger.d("creating location request with max update delay millis $MAX_WAIT_TIME_MS")
+            logger.d("creating location request with max update delay millis $LOCATION_MAX_UPDATE_INTERVAL_MS")
             val locationRequest = LocationRequest.Builder(
                 Priority.PRIORITY_HIGH_ACCURACY,
-                if (isStationary) LOCATION_UPDATE_INTERVAL_STATIONARY_MS else LOCATION_UPDATE_INTERVAL_MS
+                LOCATION_UPDATE_INTERVAL_MS
             ).apply {
-                setMinUpdateIntervalMillis(LOCATION_FASTEST_INTERVAL_MS)
-                setMaxUpdateDelayMillis(MAX_WAIT_TIME_MS) // Enable batched updates
+                setMinUpdateIntervalMillis(LOCATION_MIN_UPDATE_INTERVAL_MS)
+                setMaxUpdateDelayMillis(LOCATION_MAX_UPDATE_INTERVAL_MS) // Enable batched updates
                 setWaitForAccurateLocation(false)
             }.build()
 
@@ -275,17 +274,10 @@ class LocationTrackingService : Service() {
     private fun handleLocationUpdate(location: Location) {
         logger.d("handleLocationUpdate of location $location")
         // Check if user is stationary (battery optimization)
-        val wasStationary = isStationary
         lastLocation?.let { last ->
             val distance = last.distanceTo(location)
             isStationary = distance < STATIONARY_DISTANCE_THRESHOLD
             logger.d("location isStationary: $isStationary distance: $distance")
-            
-            // If stationary state changed, restart location updates with new interval
-            if (wasStationary != isStationary) {
-                logger.d("Stationary state changed: $isStationary, restarting location updates")
-                restartLocationUpdates()
-            }
         }
         lastLocation = location
         
