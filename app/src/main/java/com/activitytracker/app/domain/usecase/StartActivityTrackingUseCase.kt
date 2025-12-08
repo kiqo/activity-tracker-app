@@ -22,7 +22,8 @@ import javax.inject.Inject
 class StartActivityTrackingUseCase @Inject constructor(
     private val activityRepository: ActivityRepository,
     private val stopActivityTrackingUseCase: StopActivityTrackingUseCase,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val logger: com.activitytracker.app.util.Logger
 ) {
     /**
      * Start a new activity session and begin location tracking.
@@ -60,7 +61,7 @@ class StartActivityTrackingUseCase @Inject constructor(
         )
         val sessionId = activityRepository.insertSession(session)
         
-        // Start LocationTrackingService
+        logger.d("Starting LocationTrackingService from StartActivityTrackingUseCase")
         val intent = Intent(context, LocationTrackingService::class.java).apply {
             action = LocationTrackingService.ACTION_START_TRACKING
             putExtra(LocationTrackingService.EXTRA_SESSION_ID, sessionId)
