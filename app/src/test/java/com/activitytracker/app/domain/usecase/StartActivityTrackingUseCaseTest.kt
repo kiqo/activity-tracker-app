@@ -8,6 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
@@ -30,10 +31,12 @@ class StartActivityTrackingUseCaseTest {
 
     private lateinit var startActivityTrackingUseCase: StartActivityTrackingUseCase
 
+    @Mock
+    private lateinit var logger: com.activitytracker.app.util.Logger
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        startActivityTrackingUseCase = StartActivityTrackingUseCase(activityRepository, stopActivityTrackingUseCase, context)
+        startActivityTrackingUseCase = StartActivityTrackingUseCase(activityRepository, stopActivityTrackingUseCase, context, logger)
     }
 
     @Test
