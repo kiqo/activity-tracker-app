@@ -224,7 +224,9 @@ class ActivityRecognitionService : Service() {
      * before creating new ones, ensuring at most 1 automatic session is active.
      */
     private fun handleActivityDetected(activityType: Int, confidence: Int) {
+        logger.d("Handling activity $activityType with confidence $confidence")
         if (confidence < CONFIDENCE_THRESHOLD) {
+            logger.d("Discarding activity due to too low confidence")
             return
         }
         
@@ -234,6 +236,7 @@ class ActivityRecognitionService : Service() {
         // If this is a different activity type, start new automatic session
         // The StartActivityTrackingUseCase will handle stopping any existing automatic session
         if (detectedActivity != currentActivityType) {
+            logger.d("Starting new activity due to different activity type")
             serviceScope.launch {
                 try {
                     // Start new automatic session (isManual = false)
