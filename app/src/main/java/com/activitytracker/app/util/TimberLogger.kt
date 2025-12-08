@@ -1,15 +1,15 @@
 package com.activitytracker.app.util
 
 import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Timber-based implementation of Logger interface.
  * Uses Timber library for actual logging.
+ * 
+ * Note: Timber initialization is handled by LoggingModule.
+ * This class should not be instantiated directly - use dependency injection.
  */
-@Singleton
-class TimberLogger @Inject constructor() : Logger {
+class TimberLogger : Logger {
     
     override fun d(message: String) {
         Timber.d(message)

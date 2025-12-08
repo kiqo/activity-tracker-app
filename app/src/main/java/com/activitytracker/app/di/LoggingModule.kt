@@ -1,11 +1,13 @@
 package com.activitytracker.app.di
 
+import com.activitytracker.app.BuildConfig
 import com.activitytracker.app.util.Logger
 import com.activitytracker.app.util.TimberLogger
-import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 import javax.inject.Singleton
 
 /**
@@ -13,9 +15,15 @@ import javax.inject.Singleton
  */
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class LoggingModule {
+object LoggingModule {
     
-    @Binds
+    @Provides
     @Singleton
-    abstract fun bindLogger(timberLogger: TimberLogger): Logger
+    fun provideLogger(): Logger {
+        // Initialize Timber when Logger is first created
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+        return TimberLogger()
+    }
 }
